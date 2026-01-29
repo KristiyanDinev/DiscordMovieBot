@@ -1,0 +1,13 @@
+# Ignore everything by default
+*
+
+# Allow the build/libs jar pattern for different versions
+!build/
+!build/libs/
+!build/libs/DiscordMovieBotShadowJar-*.jar
+
+# IDE and VCS files
+.git
+.gitignore
+.idea
+*.iml
