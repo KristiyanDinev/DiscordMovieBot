@@ -4,6 +4,8 @@ A Discord bot that lets users guess movies from GIFs! The bot uses minimal Disco
 
 Invite link: https://discord.com/oauth2/authorize?client_id=1466485885074800854&permissions=277025409024&integration_type=0&scope=bot
 
+ToS and Privacy policy: https://kristiyandinev.github.io/Discord-Movie-Bot-Static-Webpage/
+
 ## Features
 
 - 🎮 **Movie Guessing Game**: Bot shows a GIF from a random popular movie
