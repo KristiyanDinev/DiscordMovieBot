@@ -30,7 +30,8 @@ public class Main {
                     Commands.slash("guess", "Guess the movie title (one attempt only!)")
                             .addOption(OptionType.STRING, "title", "Your guess for the movie title", true),
                     Commands.slash("leaderboard", "Show the server and member leaderboards"),
-                    Commands.slash("skip", "Skip the current movie and start a new round (reveals the answer)")
+                    Commands.slash("skip", "Skip the current movie and start a new round (reveals the answer)"),
+                    Commands.slash("help", "Displays the help menu")
             ).queue();
 
             System.out.println("Movie Guess Bot is ready!");

@@ -46,6 +46,8 @@ bin/
 .gradle/
 !gradle/wrapper/gradle-wrapper.properties
 
+buildimage.bat
+
 # Compiled class files
 *.class
 

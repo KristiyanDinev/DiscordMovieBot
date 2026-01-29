@@ -25,6 +25,7 @@ ToS and Privacy policy: https://kristiyandinev.github.io/Discord-Movie-Bot-Stati
 - `/guess <title>` - Guess the movie title (⚠️ ONE ATTEMPT ONLY!)
 - `/leaderboard` - View server and member leaderboards
 - `/skip` - Skip the current movie, reveal the answer, and start a new round
+- `/help` - Displays the help command
 
 ## Game Rules
 

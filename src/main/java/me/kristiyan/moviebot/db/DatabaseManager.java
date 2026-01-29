@@ -65,10 +65,10 @@ public class DatabaseManager {
 
     // Set active movie for a guild
     public static void setActiveMovie(String guildId, String movieTitle, String gifUrl) {
-        String sql = "INSERT OR REPLACE INTO active_movies (guild_id, movie_title, gif_url) VALUES (?, ?, ?)";
 
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "INSERT OR REPLACE INTO active_movies (guild_id, movie_title, gif_url) VALUES (?, ?, ?)")) {
 
             pstmt.setString(1, guildId);
             pstmt.setString(2, movieTitle);
@@ -82,10 +82,8 @@ public class DatabaseManager {
 
     // Get active movie for a guild
     public static ActiveMovie getActiveMovie(String guildId) {
-        String sql = "SELECT movie_title, gif_url FROM active_movies WHERE guild_id = ?";
-
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement("SELECT movie_title, gif_url FROM active_movies WHERE guild_id = ?")) {
 
             pstmt.setString(1, guildId);
             ResultSet rs = pstmt.executeQuery();
@@ -103,10 +101,8 @@ public class DatabaseManager {
 
     // Check if a member has already guessed for the current movie
     public static boolean hasAlreadyGuessed(String guildId, String memberId) {
-        String sql = "SELECT 1 FROM active_guesses WHERE guild_id = ? AND member_id = ?";
-
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement("SELECT 1 FROM active_guesses WHERE guild_id = ? AND member_id = ?")) {
 
             pstmt.setString(1, guildId);
             pstmt.setString(2, memberId);
@@ -163,30 +159,26 @@ public class DatabaseManager {
     public static void recordCorrectGuess(String guildId, String guildName, String memberId, String memberNickname) {
         try (Connection conn = getConnection()) {
             // Update guild leaderboard
-            String guildSql = """
+            try (PreparedStatement pstmt = conn.prepareStatement("""
                 INSERT INTO guild_leaderboard (guild_id, guild_name, correct_guesses) 
                 VALUES (?, ?, 1)
                 ON CONFLICT(guild_id) DO UPDATE SET 
                     guild_name = excluded.guild_name,
                     correct_guesses = correct_guesses + 1
-            """;
-
-            try (PreparedStatement pstmt = conn.prepareStatement(guildSql)) {
+            """)) {
                 pstmt.setString(1, guildId);
                 pstmt.setString(2, guildName);
                 pstmt.executeUpdate();
             }
 
             // Update member leaderboard
-            String memberSql = """
+            try (PreparedStatement pstmt = conn.prepareStatement("""
                 INSERT INTO member_leaderboard (guild_id, member_id, member_nickname, correct_guesses) 
                 VALUES (?, ?, ?, 1)
                 ON CONFLICT(guild_id, member_id) DO UPDATE SET 
                     member_nickname = excluded.member_nickname,
                     correct_guesses = correct_guesses + 1
-            """;
-
-            try (PreparedStatement pstmt = conn.prepareStatement(memberSql)) {
+            """)) {
                 pstmt.setString(1, guildId);
                 pstmt.setString(2, memberId);
                 pstmt.setString(3, memberNickname);
@@ -201,10 +193,10 @@ public class DatabaseManager {
     // Get top guilds by correct guesses
     public static List<LeaderboardEntry> getGuildLeaderboard(int limit) {
         List<LeaderboardEntry> leaderboard = new ArrayList<>();
-        String sql = "SELECT guild_name, correct_guesses FROM guild_leaderboard ORDER BY correct_guesses DESC LIMIT ?";
 
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "SELECT guild_name, correct_guesses FROM guild_leaderboard ORDER BY correct_guesses DESC LIMIT ?")) {
 
             pstmt.setInt(1, limit);
             ResultSet rs = pstmt.executeQuery();
@@ -226,10 +218,10 @@ public class DatabaseManager {
     // Get top members for a specific guild
     public static List<LeaderboardEntry> getMemberLeaderboard(String guildId, int limit) {
         List<LeaderboardEntry> leaderboard = new ArrayList<>();
-        String sql = "SELECT member_nickname, correct_guesses FROM member_leaderboard WHERE guild_id = ? ORDER BY correct_guesses DESC LIMIT ?";
 
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "SELECT member_nickname, correct_guesses FROM member_leaderboard WHERE guild_id = ? ORDER BY correct_guesses DESC LIMIT ?")) {
 
             pstmt.setString(1, guildId);
             pstmt.setInt(2, limit);

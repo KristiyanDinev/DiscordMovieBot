@@ -4,6 +4,7 @@ import me.kristiyan.moviebot.db.DatabaseManager;
 import me.kristiyan.moviebot.utils.MovieMatcher;
 import me.kristiyan.moviebot.utils.MovieProvider;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -16,10 +17,15 @@ public class CommandListener extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        String guildId = event.getGuild().getId();
-        String guildName = event.getGuild().getName();
+        Guild guild = event.getGuild();
+        if (guild == null) {
+            return;
+        }
+        String guildId = guild.getId();
+        String guildName = guild.getName();
 
         switch (event.getName()) {
+            case "help" -> handleHelpCommand(event);
             case "start" -> handleStartCommand(event, guildId);
             case "guess" -> handleGuessCommand(event, guildId, guildName);
             case "leaderboard" -> handleLeaderboardCommand(event, guildId);
@@ -27,11 +33,33 @@ public class CommandListener extends ListenerAdapter {
         }
     }
 
+    public void handleHelpCommand(SlashCommandInteractionEvent event) {
+        event.replyEmbeds(new EmbedBuilder()
+                .setTitle("🎬 Guess The Movie: Help")
+                .setDescription("Test your cinema knowledge! I'll show you a GIF, and you guess the movie or anime title.")
+                .setColor(new Color(245, 197, 24))
+                .addField("🎮 How to Play",
+                        "1. Type `/start` to spawn a random movie GIF.\n" +
+                                "2. Recognize the scene?\n" +
+                                "3. Use `/guess <title>` to lock in your answer!",
+                        false)
+
+                .addField("⚠️ The Golden Rule",
+                        "You only get **ONE** guess per movie!\n" +
+                                "If you guess wrong, the round ends and the answer is revealed. No second chances!",
+                        false)
+                .addField("Commands",
+                        "`/start` • Start a new game round\n" +
+                                "`/guess [title]` • Submit your answer\n" +
+                                "`/skip` • Skip the guess and see the answer\n" +
+                                "`/leaderboard` • View server and global stats",
+                        false)
+                .setFooter("Good luck! 🍿").build()).queue();
+    }
+
     private void handleStartCommand(SlashCommandInteractionEvent event, String guildId) {
         // Check if there's already an active movie
-        DatabaseManager.ActiveMovie currentMovie = DatabaseManager.getActiveMovie(guildId);
-
-        if (currentMovie != null) {
+        if (DatabaseManager.getActiveMovie(guildId) != null) {
             event.reply("⚠️ There's already an active movie to guess! Use `/guess <title>` to make your guess (one attempt only!), or `/skip` to reveal the answer and start a new round.")
                     .setEphemeral(true)
                     .queue();
@@ -95,9 +123,7 @@ public class CommandListener extends ListenerAdapter {
         DatabaseManager.recordGuessAttempt(guildId, memberId);
 
         // Check if the guess is correct using fuzzy matching
-        boolean isCorrect = MovieMatcher.isMatch(guess, activeMovie.title);
-
-        if (isCorrect) {
+        if (MovieMatcher.isMatch(guess, activeMovie.title)) {
             // Record the correct guess
             DatabaseManager.recordCorrectGuess(guildId, guildName, memberId, memberNickname);
 
@@ -164,8 +190,7 @@ public class CommandListener extends ListenerAdapter {
             StringBuilder memberBoard = new StringBuilder();
             for (int i = 0; i < memberLeaderboard.size(); i++) {
                 DatabaseManager.LeaderboardEntry entry = memberLeaderboard.get(i);
-                String medal = i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : (i + 1) + ".";
-                memberBoard.append(medal)
+                memberBoard.append(i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : (i + 1) + ".")
                         .append(" **")
                         .append(entry.name)
                         .append("** - ")
