@@ -42,10 +42,6 @@ ToS and Privacy policy: https://kristiyandinev.github.io/Discord-Movie-Bot-Stati
 
 ## Required Permissions & Intents
 
-### Gateway Intents
-- ✅ **GUILDS** - Access to guild information (guild ID, guild name)
-- ✅ **GUILD_MEMBERS** - Access to member information (member ID, member nickname)
-
 ### Bot Permissions
 - ✅ **Send Messages** - To send GIFs and responses
 - ✅ **Embed Links** - To send rich embeds
@@ -102,14 +98,13 @@ gradle build
 ### Step 3: Run the Bot
 
 ```bash
-java -jar build/libs/movie-guess-bot-1.0.0.jar
+buildimage.bat
+docker compose up -d
 ```
 
-You should see:
-```
-Database initialized successfully!
-Movie Guess Bot is ready!
-```
+Then you will get an error, which says that you can't connect.
+Go to your postgres database adn run all the commands from `init.sql`
+Then restart only the discord bot container and you should be good to go.
 
 ### Step 4: Play!
 

@@ -20,10 +20,16 @@ dependencies {
     implementation libs.jda
 
     // SQLite JDBC Driver
-    implementation libs.sqlite
+    //implementation libs.sqlite
+    implementation libs.postgres
+
+    // Source: https://mvnrepository.com/artifact/com.zaxxer/HikariCP
+    implementation libs.hikaricp
 
     // SLF4J Simple Logger (for JDA logging)
     implementation libs.slf4j
+
+
 }
 
 application {

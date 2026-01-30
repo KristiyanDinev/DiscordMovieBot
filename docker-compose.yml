@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:18.1
+    container_name: moviebot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: "..."
+    volumes:
+      - moviebot-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 3s
+      timeout: 5s
+      retries: 10           # give it ~30s max to become ready
+      start_period: 5s
+    # ports:   # uncomment only if you need host access
+    #   - "5432:5432"
+
+  bot:
+    image: discordmoviebot:latest
+    container_name: discordmoviebot
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB_NAME: "moviebot_db"
+      POSTGRES_DB_HOST: "postgres"
+      POSTGRES_DB_PORT: "5432"
+      POSTGRES_DB_USERNAME: "moviebot_user"
+      POSTGRES_DB_PASSWORD: "."
+      DISCORD_MOVIE_BOT_TOKEN: "."
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  moviebot-postgres-data:
+    name: moviebot-postgres-data

@@ -8,7 +8,7 @@
 └─────────────────┬───────────────────────────────────────────┘
                   │
                   │ Gateway Connection
-                  │ (GUILDS + GUILD_MEMBERS intents)
+                  │ 
                   │
 ┌─────────────────▼───────────────────────────────────────────┐
 │                   MovieGuessBot (Main)                       │
@@ -211,7 +211,7 @@ Stores the current movie being guessed in each server.
 | gif_url     | TEXT      | URL of the movie GIF           |
 | created_at  | TIMESTAMP | When the game round started    |
 
-### Table: active_guesses (NEW!)
+### Table: active_guesses
 Tracks who has guessed for the current movie in each server.
 
 | Column      | Type              | Description                    |
@@ -242,6 +242,9 @@ Tracks individual player performance per server.
 | correct_guesses | INTEGER           | Player's correct guesses       |
 
 **Note**: Composite primary key (guild_id, member_id) ensures each member is tracked per server.
+
+
+A movie table with every movie with gif url there. It has indexing for faster results.
 
 ## Matching Algorithm Details
 
