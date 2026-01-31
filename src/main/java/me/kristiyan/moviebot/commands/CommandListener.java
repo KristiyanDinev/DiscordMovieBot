@@ -13,12 +13,10 @@ public class CommandListener extends ListenerAdapter {
             return;
         }
         String guildId = guild.getId();
-        String guildName = guild.getName();
-
         switch (event.getName()) {
             case "help" -> HelpCommand.handleHelpCommand(event);
             case "start" -> StartCommand.handleStartCommand(event, guildId);
-            case "guess" -> GuessCommand.handleGuessCommand(event, guildId, guildName);
+            case "guess" -> GuessCommand.handleGuessCommand(event, guildId, guild.getName());
             case "leaderboard" -> LeaderboardCommand.handleLeaderboardCommand(event, guildId);
             case "skip" -> SkipCommand.handleSkipCommand(event, guildId);
         }

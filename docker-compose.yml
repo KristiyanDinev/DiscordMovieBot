@@ -6,7 +6,7 @@ services:
     container_name: moviebot-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_PASSWORD: "..."
+      POSTGRES_PASSWORD: ""
     volumes:
       - moviebot-postgres-data:/var/lib/postgresql
     healthcheck:
@@ -23,12 +23,13 @@ services:
     container_name: discordmoviebot
     restart: unless-stopped
     environment:
+      JAVA_OPTS: "-Xms128M -Xmx5G -XX:+UseG1GC -XX:G1PeriodicGCInterval=60000 -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20"
       POSTGRES_DB_NAME: "moviebot_db"
       POSTGRES_DB_HOST: "postgres"
       POSTGRES_DB_PORT: "5432"
       POSTGRES_DB_USERNAME: "moviebot_user"
-      POSTGRES_DB_PASSWORD: "."
-      DISCORD_MOVIE_BOT_TOKEN: "."
+      POSTGRES_DB_PASSWORD: ""
+      DISCORD_MOVIE_BOT_TOKEN: ""
     depends_on:
       postgres:
         condition: service_healthy

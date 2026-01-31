@@ -56,8 +56,6 @@ public class LeaderboardCommand {
             embed.addField("👥 Top Players (This Server)", "No data yet!", false);
         }
 
-        embed.setFooter("Keep playing to climb the leaderboard! 🎬");
-
-        event.replyEmbeds(embed.build()).queue();
+        event.replyEmbeds(embed.setFooter("Keep playing to climb the leaderboard! 🎬").build()).queue();
     }
 }

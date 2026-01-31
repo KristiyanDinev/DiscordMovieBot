@@ -21,7 +21,7 @@ public class DatabaseManager {
         String dbName = System.getenv("POSTGRES_DB_NAME");
 
         // Validate environment variables
-        if (dbHost == null || dbPort == null || dbUser == null || dbPassword == null) {
+        if (dbHost == null || dbPort == null || dbUser == null || dbPassword == null || dbName == null) {
             throw new RuntimeException("Missing required database environment variables. " +
                     "Required: POSTGRES_DB_HOST, POSTGRES_DB_PORT, POSTGRES_DB_USERNAME, POSTGRES_DB_PASSWORD, POSTGRES_DB_NAME");
         }
@@ -128,11 +128,9 @@ public class DatabaseManager {
 
     // Set active movie for a guild (using movie from database)
     public static void setActiveMovie(String guildId, int movieId) {
-        String sql = "INSERT INTO active_movies (guild_id, movie_id) VALUES (?, ?) " +
-                "ON CONFLICT (guild_id) DO UPDATE SET movie_id = EXCLUDED.movie_id, created_at = CURRENT_TIMESTAMP";
-
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "INSERT INTO active_movies (guild_id, movie_id) VALUES (?, ?) ON CONFLICT (guild_id) DO UPDATE SET movie_id = EXCLUDED.movie_id, created_at = CURRENT_TIMESTAMP")) {
 
             pstmt.setString(1, guildId);
             pstmt.setInt(2, movieId);
@@ -146,15 +144,13 @@ public class DatabaseManager {
 
     // Get active movie for a guild
     public static ActiveMovie getActiveMovie(String guildId) {
-        String sql = """
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("""
             SELECT m.id, m.title, m.gif_url 
             FROM active_movies am
             JOIN movies m ON am.movie_id = m.id
             WHERE am.guild_id = ?
-        """;
-
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        """)) {
 
             pstmt.setString(1, guildId);
             ResultSet rs = pstmt.executeQuery();
@@ -177,10 +173,9 @@ public class DatabaseManager {
 
     // Check if a member has already guessed for the current movie
     public static boolean hasAlreadyGuessed(String guildId, String memberId) {
-        String sql = "SELECT 1 FROM active_guesses WHERE guild_id = ? AND member_id = ?";
 
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement("SELECT 1 FROM active_guesses WHERE guild_id = ? AND member_id = ?")) {
 
             pstmt.setString(1, guildId);
             pstmt.setString(2, memberId);
@@ -198,10 +193,9 @@ public class DatabaseManager {
 
     // Record that a member has made a guess
     public static void recordGuessAttempt(String guildId, String memberId) {
-        String sql = "INSERT INTO active_guesses (guild_id, member_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
-
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "INSERT INTO active_guesses (guild_id, member_id) VALUES (?, ?) ON CONFLICT DO NOTHING")) {
 
             pstmt.setString(1, guildId);
             pstmt.setString(2, memberId);
@@ -220,15 +214,13 @@ public class DatabaseManager {
 
             try {
                 // Clear the movie
-                String movieSql = "DELETE FROM active_movies WHERE guild_id = ?";
-                try (PreparedStatement pstmt = conn.prepareStatement(movieSql)) {
+                try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM active_movies WHERE guild_id = ?")) {
                     pstmt.setString(1, guildId);
                     pstmt.executeUpdate();
                 }
 
                 // Clear all guesses for this guild
-                String guessesSql = "DELETE FROM active_guesses WHERE guild_id = ?";
-                try (PreparedStatement pstmt = conn.prepareStatement(guessesSql)) {
+                try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM active_guesses WHERE guild_id = ?")) {
                     pstmt.setString(1, guildId);
                     pstmt.executeUpdate();
                 }
@@ -254,28 +246,26 @@ public class DatabaseManager {
 
             try {
                 // Update guild leaderboard
-                String guildSql = """
+                try (PreparedStatement pstmt = conn.prepareStatement("""
                     INSERT INTO guild_leaderboard (guild_id, guild_name, correct_guesses) 
                     VALUES (?, ?, 1)
                     ON CONFLICT(guild_id) DO UPDATE SET 
                         guild_name = EXCLUDED.guild_name,
                         correct_guesses = guild_leaderboard.correct_guesses + 1
-                """;
-                try (PreparedStatement pstmt = conn.prepareStatement(guildSql)) {
+                """)) {
                     pstmt.setString(1, guildId);
                     pstmt.setString(2, guildName);
                     pstmt.executeUpdate();
                 }
 
                 // Update member leaderboard
-                String memberSql = """
+                try (PreparedStatement pstmt = conn.prepareStatement("""
                     INSERT INTO member_leaderboard (guild_id, member_id, member_nickname, correct_guesses) 
                     VALUES (?, ?, ?, 1)
                     ON CONFLICT(guild_id, member_id) DO UPDATE SET 
                         member_nickname = EXCLUDED.member_nickname,
                         correct_guesses = member_leaderboard.correct_guesses + 1
-                """;
-                try (PreparedStatement pstmt = conn.prepareStatement(memberSql)) {
+                """)) {
                     pstmt.setString(1, guildId);
                     pstmt.setString(2, memberId);
                     pstmt.setString(3, memberNickname);
@@ -299,10 +289,9 @@ public class DatabaseManager {
     // Get top guilds by correct guesses
     public static List<LeaderboardEntry> getGuildLeaderboard(int limit) {
         List<LeaderboardEntry> leaderboard = new ArrayList<>();
-        String sql = "SELECT guild_name, correct_guesses FROM guild_leaderboard ORDER BY correct_guesses DESC LIMIT ?";
-
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "SELECT guild_name, correct_guesses FROM guild_leaderboard ORDER BY correct_guesses DESC LIMIT ?")) {
 
             pstmt.setInt(1, limit);
             ResultSet rs = pstmt.executeQuery();
@@ -325,10 +314,10 @@ public class DatabaseManager {
     // Get top members for a specific guild
     public static List<LeaderboardEntry> getMemberLeaderboard(String guildId, int limit) {
         List<LeaderboardEntry> leaderboard = new ArrayList<>();
-        String sql = "SELECT member_nickname, correct_guesses FROM member_leaderboard WHERE guild_id = ? ORDER BY correct_guesses DESC LIMIT ?";
 
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "SELECT member_nickname, correct_guesses FROM member_leaderboard WHERE guild_id = ? ORDER BY correct_guesses DESC LIMIT ?")) {
 
             pstmt.setString(1, guildId);
             pstmt.setInt(2, limit);
@@ -351,11 +340,10 @@ public class DatabaseManager {
 
     // Get a random movie from the database
     public static Movie getRandomMovie() {
-        String sql = "SELECT id, title, gif_url FROM movies ORDER BY RANDOM() LIMIT 1";
 
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             ResultSet rs = stmt.executeQuery("SELECT id, title, gif_url FROM movies ORDER BY RANDOM() LIMIT 1")) {
 
             if (rs.next()) {
                 return new Movie(
@@ -375,10 +363,9 @@ public class DatabaseManager {
 
     // Add a new movie to the database
     public static boolean addMovie(String title, String gifUrl) {
-        String sql = "INSERT INTO movies (title, gif_url) VALUES (?, ?) ON CONFLICT (title) DO NOTHING";
-
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "INSERT INTO movies (title, gif_url) VALUES (?, ?) ON CONFLICT (title) DO NOTHING")) {
 
             pstmt.setString(1, title);
             pstmt.setString(2, gifUrl);
@@ -396,11 +383,9 @@ public class DatabaseManager {
 
     // Get total movie count
     public static int getMovieCount() {
-        String sql = "SELECT COUNT(*) FROM movies";
-
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM movies")) {
 
             if (rs.next()) {
                 return rs.getInt(1);

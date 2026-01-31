@@ -60,15 +60,13 @@ public class GuessCommand {
             DatabaseManager.clearActiveMovie(guildId);
 
             // Send success message (public so everyone can see)
-            EmbedBuilder embed = new EmbedBuilder()
+            event.replyEmbeds(new EmbedBuilder()
                     .setTitle("🎉 Correct!")
                     .setDescription("**" + memberNickname + "** guessed it right!")
                     .addField("Movie", activeMovie.title, false)
                     .addField("Their Guess", guess, false)
                     .setColor(Color.GREEN)
-                    .setFooter("Use /start to play another round! 🎬");
-
-            event.replyEmbeds(embed.build()).queue();
+                    .setFooter("Use /start to play another round! 🎬").build()).queue();
         } else {
             // Wrong guess - reveal the answer and end the round
             DatabaseManager.clearActiveMovie(guildId);
