@@ -19,7 +19,7 @@ services:
     #   - "5432:5432"
 
   bot:
-    image: discordmoviebot:latest
+    image: discordmoviebot:1.1.0
     container_name: discordmoviebot
     restart: unless-stopped
     environment:

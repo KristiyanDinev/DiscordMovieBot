@@ -1,6 +1,6 @@
 package me.kristiyan.moviebot.commands;
 
-import me.kristiyan.moviebot.db.DatabaseManager;
+import me.kristiyan.moviebot.database.DatabaseManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 

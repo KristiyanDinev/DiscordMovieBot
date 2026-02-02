@@ -33,19 +33,6 @@ GRANT USAGE, CREATE ON SCHEMA public TO moviebot_user;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- =========================================================
--- Tables
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS movies (
-                                      id        BIGSERIAL PRIMARY KEY,
-                                      title     TEXT NOT NULL,
-                                      gif_url   TEXT NOT NULL,
-                                      created_at TIMESTAMPTZ DEFAULT now(),
-
-                                      CONSTRAINT movies_title_unique UNIQUE (title)
-);
-
--- =========================================================
 -- Privileges
 -- =========================================================
 

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'me.kristiyan.moviebot'
-version = '1.0.0'
+version = '2.0.0'
 
 repositories {
     mavenCentral()
@@ -19,8 +19,7 @@ dependencies {
     // JDA (Java Discord API)
     implementation libs.jda
 
-    // SQLite JDBC Driver
-    //implementation libs.sqlite
+    // postgres JDBC Driver
     implementation libs.postgres
 
     // Source: https://mvnrepository.com/artifact/com.zaxxer/HikariCP
@@ -29,7 +28,11 @@ dependencies {
     // SLF4J Simple Logger (for JDA logging)
     implementation libs.slf4j
 
+    // JPA for easier DB management
+    implementation libs.jpa
 
+    // Hibernate for easier Java code
+    implementation libs.hibernate
 }
 
 application {
@@ -45,7 +48,7 @@ jar {
 shadowJar {
     archiveBaseName.set('DiscordMovieBotShadowJar')
     archiveClassifier.set('')
-    archiveVersion.set('1.0.0')
+    archiveVersion.set('2.0.0')
     mergeServiceFiles()
 }
 

@@ -97,13 +97,30 @@ gradle build
 
 ### Step 3: Run the Bot
 
+The bot uses these ENV variables in order to work:
+
+- `POSTGRES_DB_HOST` - The PostgresSQL database HOST Address
+- `POSTGRES_DB_PORT` - The PostgresSQL database Port
+- `POSTGRES_DB_USERNAME` - The PostgresSQL user to connect as
+- `POSTGRES_DB_PASSWORD` - The PostgresSQL user's password for authentication.
+
+The following are **optional** and they default to some value if they are not set:
+
+- `HIKARICP_MAX_POOL_SIZE` = 10
+- `HIKARICP_MINIMUM_IDLE` = 2
+- `HIKARICP_CONNECTION_TIMEOUT`= 30000 (ms), which is 30 seconds
+- `HIKARICP_IDLE_TIMEOUT` = 60000 (ms), which is 1 min.
+- `HIKARICP_MAX_LIFETIME` = 1800000 (ms), which is 30 mins
+- `HIBERNATE_HDM2DDL_AUTO` = update
+- `HIBERNATE_SHOW_SQL` = false
+
 ```bash
-buildimage.bat
+docker build --build-args BOT_VERSION=1.0.0 -t discordmoviebot:1.0.0 .
 docker compose up -d
 ```
 
 Then you will get an error, which says that you can't connect.
-Go to your postgres database adn run all the commands from `init.sql`
+Go to your postgres database and run all the commands from `init.sql`
 Then restart only the discord bot container and you should be good to go.
 
 ### Step 4: Play!
@@ -115,35 +132,7 @@ In your Discord server, try these commands:
 3. `/leaderboard` - See who's winning
 4. `/skip` - Reveal the answer and get a new movie
 
-## Project Structure
-
-```
-movie-guess-bot/
-├── MovieGuessBot.java           # Main bot class and entry point
-├── CommandListener.java         # Handles slash command interactions
-├── DatabaseManager.java         # SQLite database operations
-├── MovieProvider.java           # Movie data with GIF URLs
-├── MovieMatcher.java            # Fuzzy matching for movie titles
-├── build.gradle                 # Gradle build configuration
-├── settings.gradle              # Gradle settings
-├── gradlew                      # Gradle wrapper script (Unix)
-├── gradlew.bat                  # Gradle wrapper script (Windows)
-├── gradle/wrapper/              # Gradle wrapper files
-├── README.md                    # This file
-└── movieguess.db               # SQLite database (created on first run)
-```
-
 ## How It Works
-
-### One-Guess Rule
-
-Each user can only guess once per movie:
-1. User makes a guess with `/guess`
-2. Bot checks if they've already guessed for this movie
-3. If yes: they're told to wait
-4. If no: their guess is recorded and checked
-5. Correct guess: they score, round ends
-6. Wrong guess: answer revealed, round ends, no score
 
 ### Fuzzy Matching Algorithm
 
@@ -160,102 +149,6 @@ Examples:
 - Movie: "The Lord of the Rings"
 - ✅ Accepts: "lord of the rings", "lord rings", "Lord of Rings"
 - ❌ Rejects: "harry potter", "star wars"
-
-### Database Schema
-
-**active_movies**
-- `guild_id` (PRIMARY KEY): Discord server ID
-- `movie_title`: The movie to guess
-- `gif_url`: GIF URL for the movie
-- `created_at`: Timestamp
-
-**active_guesses** (NEW!)
-- `guild_id, member_id` (COMPOSITE PRIMARY KEY)
-- `guessed_at`: When the member guessed
-
-**guild_leaderboard**
-- `guild_id` (PRIMARY KEY): Discord server ID
-- `guild_name`: Server name
-- `correct_guesses`: Total correct guesses
-
-**member_leaderboard**
-- `guild_id, member_id` (COMPOSITE PRIMARY KEY)
-- `member_nickname`: Member's display name
-- `correct_guesses`: Total correct guesses
-
-## Gradle Tasks
-
-```bash
-# Build the project
-./gradlew build
-
-# Clean build artifacts
-./gradlew clean
-
-# Create a fat JAR with all dependencies
-./gradlew shadowJar
-
-# See all available tasks
-./gradlew tasks
-```
-
-## Customization
-
-### Adding More Movies
-
-Edit `MovieProvider.java` and add entries to the `MOVIES` array:
-
-```java
-new Movie("Your Movie Title", "https://media.giphy.com/media/YOUR_GIF_ID/giphy.gif")
-```
-
-### Adjusting Match Sensitivity
-
-Edit `MovieMatcher.java` to change the matching threshold:
-
-```java
-return similarity >= 0.8; // Change 0.8 (80%) to your preferred threshold
-```
-
-## Troubleshooting
-
-### "Bot doesn't respond to commands"
-- Ensure slash commands are registered (wait up to 1 hour for global commands)
-- Check bot has proper permissions in the server
-- Verify SERVER MEMBERS INTENT is enabled in Discord Developer Portal
-
-### "Gradle command not found"
-- Use `./gradlew` (Linux/Mac) or `gradlew.bat` (Windows) instead
-- The Gradle Wrapper downloads Gradle automatically on first run
-
-### "Permission denied: ./gradlew"
-- Run: `chmod +x gradlew`
-
-### Database errors
-- Ensure the bot has write permissions in its directory
-- Delete `movieguess.db` to reset the database (will lose all data)
-
-### GIFs not displaying
-- Check if Discord can access the Giphy URLs
-- Some GIF URLs may expire; update them in `MovieProvider.java`
-
-## Why Gradle?
-
-- ✅ **No installation required**: Gradle Wrapper downloads everything automatically
-- ✅ **Cross-platform**: Works on Windows, Mac, Linux
-- ✅ **Modern**: Industry-standard build tool
-- ✅ **Fast**: Incremental builds and caching
-- ✅ **Easy dependencies**: Automatic dependency management
-
-## Privacy & Data Collection
-
-The bot only collects and stores:
-- Guild ID and name
-- Member ID and nickname
-- Game statistics (correct guesses count)
-- Who has guessed for the current movie
-
-No message content or other user data is collected or stored.
 
 ## License
 
