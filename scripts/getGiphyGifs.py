@@ -147,7 +147,7 @@ def get_giphy_id(movie_name):
     endpoint = "https://api.giphy.com/v1/gifs/search"
     params = {
         'api_key': API_KEY,
-        'q': movie_name + " movie", # Adding "movie" helps context
+        'q': movie_name + " movie OR anime official trailer scene",
         'limit': 1,
         'rating': 'pg-13'
     }

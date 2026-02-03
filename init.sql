@@ -55,7 +55,7 @@ BEGIN;
 -- INSERT ...
 
 INSERT INTO movies (title, gif_url) VALUES
-                                        ('28 Years Later', 'https://i.giphy.com/WyHN26mTRPjhf7bKGS.gif'),
+                                        ('28 Years Later', 'https://i.giphy.com/ZQcFVn1ymQuuDIsOvS.gif'),
                                         ('5 Centimeters Per Second', 'https://i.giphy.com/YXfY4UY4dd5sY.gif'),
                                         ('A Silent Voice', 'https://i.giphy.com/MBmFnxyBRh2JJbB6Ye.gif'),
                                         ('Akira', 'https://i.giphy.com/jsoMtBuP1Ahpu.gif'),
@@ -185,7 +185,7 @@ INSERT INTO movies (title, gif_url) VALUES
                                         ('Independence Day', 'https://i.giphy.com/40l0nfT7Wu8bC.gif'),
                                         ('Inglourious Basterds', 'https://i.giphy.com/eiwauFJGF0hb2.gif'),
                                         ('Initial D', 'https://i.giphy.com/qYUfBeJXRxBu0.gif'),
-                                        ('Inside Out', 'https://i.giphy.com/pKYb293zuoziUpRwCZ.gif'),
+                                        ('Inside Out', 'https://i.giphy.com/8wh8QBUIJzArK.gif'),
                                         ('Inside Out 2', 'https://i.giphy.com/pKYb293zuoziUpRwCZ.gif'),
                                         ('Interstellar', 'https://i.giphy.com/UCSIkkFXSeg3hugqGf.gif'),
                                         ('Iron Man', 'https://i.giphy.com/lySzu7q4P49u8.gif'),
@@ -265,7 +265,7 @@ INSERT INTO movies (title, gif_url) VALUES
                                         ('Tenet', 'https://i.giphy.com/l10bV0Vt2MiyucTMjZ.gif'),
                                         ('Terminator 2: Judgment Day', 'https://i.giphy.com/3o72FhJwcj35U5nLVu.gif'),
                                         ('The Avengers', 'https://i.giphy.com/PpeGK6edBWAxi.gif'),
-                                        ('The Batman', 'https://i.giphy.com/l3q2tzon8OCC7BqmY.gif'),
+                                        ('The Batman', 'https://i.giphy.com/4FJ2zEk8WaBHkVyHem.gif'),
                                         ('The Batman Part II', 'https://i.giphy.com/l3q2tzon8OCC7BqmY.gif'),
                                         ('The Big Lebowski', 'https://i.giphy.com/TzyQtxScgR5p6.gif'),
                                         ('The Breakfast Club', 'https://i.giphy.com/4spXzGPzlvA76.gif'),
@@ -309,7 +309,8 @@ INSERT INTO movies (title, gif_url) VALUES
                                         ('Whiplash', 'https://i.giphy.com/lUMWQ5FZLM2cDg26Uq.gif'),
                                         ('Who Framed Roger Rabbit', 'https://i.giphy.com/iPa2ff1CV9YnS.gif'),
                                         ('Wonder Woman', 'https://i.giphy.com/pLnxbpVosgjE4.gif'),
-                                        ('Zootopia 2', 'https://i.giphy.com/iHJEu41kg6r71Gt4pc.gif')
+                                        ('Zootopia 2', 'https://i.giphy.com/iHJEu41kg6r71Gt4pc.gif'),
+					('The Lego Batman Movie', 'https://i.giphy.com/l3q2tzon8OCC7BqmY.gif')
     ON CONFLICT (title) DO NOTHING;
 COMMIT;
 
@@ -476,7 +477,7 @@ CREATE INDEX IF NOT EXISTS idx_movies_title_trgm
             new Movie("Independence Day", "40l0nfT7Wu8bC"),
             new Movie("Inglourious Basterds", "eiwauFJGF0hb2"),
             new Movie("Initial D", "qYUfBeJXRxBu0"),
-            new Movie("Inside Out", "pKYb293zuoziUpRwCZ"),
+            new Movie("Inside Out", "8wh8QBUIJzArK"),
             new Movie("Inside Out 2", "pKYb293zuoziUpRwCZ"),
             new Movie("Interstellar", "UCSIkkFXSeg3hugqGf"),
             new Movie("Iron Man", "lySzu7q4P49u8"),
