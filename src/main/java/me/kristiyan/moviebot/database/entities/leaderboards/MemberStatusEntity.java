@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "member_stats", indexes = {
-        @Index(name = "idx_member_stats_score", columnList = "guild_id, stat_type, correct_guesses DESC")
+        @Index(name = "idx_member_leaderboard", columnList = "status_type, correct_guesses DESC, guild_id")
 })
 public class MemberStatusEntity {
     @Id
@@ -14,13 +14,16 @@ public class MemberStatusEntity {
     @Column(name = "guild_id",  nullable = false)
     private String guildId;
 
+    @Column(name = "guild_name",  nullable = false)
+    private String guildName;
+
     @Column(name = "member_id", nullable = false)
     private String memberId;
 
     @Column(name = "member_nickname", nullable = false)
     private String memberNickname;
 
-    @Column(name = "stat_type", length = 30, nullable = false)
+    @Column(name = "status_type", length = 30, nullable = false)
     private String statusType;
 
     @Column(name = "correct_guesses",  nullable = false)
@@ -41,4 +44,7 @@ public class MemberStatusEntity {
 
     public int getCorrectGuesses() { return correctGuesses; }
     public void setCorrectGuesses(int correctGuesses) { this.correctGuesses = correctGuesses; }
+
+    public String getGuildName() { return guildName; }
+    public void setGuildName(String guildName) { this.guildName = guildName; }
 }

@@ -1,6 +1,8 @@
 package me.kristiyan.moviebot.services;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import me.kristiyan.moviebot.database.DatabaseManager;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 import org.hibernate.Session;

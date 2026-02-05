@@ -1,10 +1,11 @@
 package me.kristiyan.moviebot.services;
 
-import jakarta.persistence.criteria.*;
 import me.kristiyan.moviebot.database.DatabaseManager;
-import me.kristiyan.moviebot.database.entities.premium.*;
+import me.kristiyan.moviebot.database.entities.premium.PremiumCodeEntity;
+import me.kristiyan.moviebot.database.entities.premium.PremiumUserEntity;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+
 import java.time.LocalDateTime;
 
 public class PremiumService {

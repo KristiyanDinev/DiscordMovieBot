@@ -3,6 +3,7 @@ package me.kristiyan.moviebot;
 import me.kristiyan.moviebot.commands.CommandListener;
 import me.kristiyan.moviebot.database.DatabaseManager;
 import me.kristiyan.moviebot.services.ServiceManager;
+import me.kristiyan.moviebot.tests.TestMain;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -20,6 +21,7 @@ public class Main {
             DatabaseManager databaseManager = new DatabaseManager();
             Runtime.getRuntime().addShutdownHook(new Thread(databaseManager::shutdown));
             serviceManager = new ServiceManager(databaseManager);
+            new TestMain(databaseManager, serviceManager);
 
             // Create JDA instance with minimal required intents
             // TESTING_DISCORD_BOT_TOKEN
@@ -38,14 +40,17 @@ public class Main {
             // Register slash commands
             jda.updateCommands().addCommands(
                     Commands.slash("start", "Start guessing movies to your liking")
+                            .addOption(OptionType.STRING, "type", "Choose between Movies or Anime", true)
+                            .addOptions(typeOption)
                             .addOption(OptionType.INTEGER, "rounds",
                                     "How many correct guesses can you get?",
                                     false)
                             .addOption(OptionType.BOOLEAN, "high_stakes",
                                     "Do you want to have only one chance to guess the movie right?",
                                     false)
-                            .addOption(OptionType.STRING, "type", "Choose between Movies or Anime", true)
-                            .addOptions(typeOption),
+                    .addOption(OptionType.BOOLEAN, "locked",
+                            "Do you want to play solo?",
+                            false),
 
 
                     Commands.slash("guess", "Guess the movie title")

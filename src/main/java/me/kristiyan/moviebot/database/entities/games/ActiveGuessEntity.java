@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "active_guesses", indexes = {
-        @Index(name = "idx_active_guesses_round", columnList = "guild_id, round_number")
+        @Index(name = "idx_active_guesses_game", columnList = "active_game_id")
 })
 public class ActiveGuessEntity {
 
@@ -14,8 +14,13 @@ public class ActiveGuessEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "active_game_id", nullable = false)
+    private ActiveGameEntity activeGame;
+
     @Column(name = "guild_id", nullable = false)
     private String guildId;
+
 
     @Column(name = "member_id", nullable = false)
     private String memberId;
@@ -25,6 +30,10 @@ public class ActiveGuessEntity {
 
     @Column(name = "guessed_at")
     private LocalDateTime guessedAt = LocalDateTime.now();
+
+    @Column(name = "member_nickname", nullable = false)
+    private String memberNickname;
+
 
     // Getters & Setters
     public String getGuildId() { return guildId; }
@@ -38,4 +47,11 @@ public class ActiveGuessEntity {
 
     public LocalDateTime getGuessedAt() { return guessedAt; }
     public void setGuessedAt(LocalDateTime guessedAt) { this.guessedAt = guessedAt; }
+
+    public String getMemberNickname() { return memberNickname; }
+    public void setMemberNickname(String memberNickname) { this.memberNickname = memberNickname; }
+
+    public ActiveGameEntity getActiveGame() { return activeGame; }
+    public void setActiveGame(ActiveGameEntity activeGame) { this.activeGame = activeGame; }
+
 }

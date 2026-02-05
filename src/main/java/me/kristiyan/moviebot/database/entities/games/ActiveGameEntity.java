@@ -12,18 +12,30 @@ import java.time.LocalDateTime;
 public class ActiveGameEntity {
 
     @Id
-    @Column(name = "guild_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "guild_id", nullable = false)
     private String guildId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id", nullable = false)
     private MovieEntity movie;
 
-    @Column(name = "current_round")
+    @Column(name = "current_round", nullable = false)
     private int currentRound = 1;
 
     @Column(name = "total_rounds", nullable = false)
     private int totalRounds;
+
+    @Column(name = "high_stakes", nullable = false)
+    private boolean highStakes = false;
+
+    @Column(name = "locked", nullable = false)
+    private boolean locked = false;
+
+    @Column(name = "locked_member_id") // If NULL, it is the public guild game
+    private String lockedMemberId = null;
 
     @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt = LocalDateTime.now();
@@ -43,4 +55,13 @@ public class ActiveGameEntity {
 
     public LocalDateTime getStartedAt() { return startedAt; }
     public void setStartedAt(LocalDateTime startedAt) { this.startedAt = startedAt; }
+
+    public boolean isHighStakes() { return highStakes; }
+    public void setHighStake(boolean highStakes) { this.highStakes = highStakes; }
+
+    public boolean isLocked() { return locked; }
+    public void setLocked(boolean locked) { this.locked = locked; }
+
+    public String getLockedMemberId() { return lockedMemberId; }
+    public void setLockedMemberId(String lockedMemberId) { this.lockedMemberId = lockedMemberId; }
 }

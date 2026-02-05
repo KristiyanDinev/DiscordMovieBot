@@ -1,4 +1,4 @@
-# Movie Guess Bot 🎬
+# Guess The Movie Bot 🎬
 
 A Discord bot that lets users guess movies from GIFs! The bot uses minimal Discord intents and permissions for verification compliance.
 
@@ -21,11 +21,12 @@ ToS and Privacy policy: https://kristiyandinev.github.io/Discord-Movie-Bot-Stati
 
 ## Commands
 
-- `/start` - Start a new movie guessing round with a GIF
-- `/guess <title>` - Guess the movie title (⚠️ ONE ATTEMPT ONLY!)
+- `/start [movie/anime] [total_rounds: int] [high_stakes: true / false] [locked: true / false]` - Start a new movie guessing round with a GIF
+- `/guess <title>` - Guess the movie title 
 - `/leaderboard` - View server and member leaderboards
-- `/skip` - Skip the current movie, reveal the answer, and start a new round
+- `/skip` - Skip the current movie, reveal the answer and try again
 - `/help` - Displays the help command
+- `/updates` - See what's new in the latest version
 
 ## Game Rules
 
@@ -113,6 +114,9 @@ The following are **optional** and they default to some value if they are not se
 - `HIKARICP_MAX_LIFETIME` = 1800000 (ms), which is 30 mins
 - `HIBERNATE_HDM2DDL_AUTO` = update
 - `HIBERNATE_SHOW_SQL` = false
+- `HIBERNATE_JDBC_BATCH_SIZE` = 50
+- `HIBERNATE_ORDER_INSERTS` = true
+- `HIBERNATE_ORDER_UPDATES` = true
 
 ```bash
 docker build --build-args BOT_VERSION=1.0.0 -t discordmoviebot:1.0.0 .

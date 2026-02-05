@@ -1,6 +1,6 @@
 FROM alpine/java:21-jre
 
-ARG BOT_VERSION=1.0.0
+ARG BOT_VERSION=2.0.0
 ARG JAR_NAME=DiscordMovieBotShadowJar-${BOT_VERSION}.jar
 
 WORKDIR /app

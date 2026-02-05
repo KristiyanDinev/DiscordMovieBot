@@ -1,10 +1,11 @@
 package me.kristiyan.moviebot.database.entities.movie;
 
 import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "movies", indexes = {
@@ -29,13 +30,19 @@ public class MovieEntity {
     private int year;
 
     @Column(nullable = false, precision = 3, scale = 1)
-    private BigDecimal rating;
+    private BigDecimal rating;  // vote_average
+
+    @Column(nullable = false)
+    private int duration;
+
+    @Column(nullable = false, precision = 3, scale = 1)
+    private BigDecimal popularity;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MovieCategoryEntity> categories = new HashSet<>();
+    private List<MovieCategoryEntity> categories = new ArrayList<>();
 
     // Getters & Setters
     public int getId() { return id; }
@@ -59,8 +66,8 @@ public class MovieEntity {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public Set<MovieCategoryEntity> getCategories() { return categories; }
-    public void setCategories(Set<MovieCategoryEntity> categories) { this.categories = categories; }
+    public List<MovieCategoryEntity> getCategories() { return categories; }
+    public void setCategories(List<MovieCategoryEntity> categories) { this.categories = categories; }
 
     public void addCategory(String categoryName) {
         this.categories.add(new MovieCategoryEntity(this, categoryName));

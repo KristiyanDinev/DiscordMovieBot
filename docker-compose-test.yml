@@ -1,0 +1,42 @@
+
+
+services:
+  postgres-test:
+    image: postgres:18.1
+    container_name: moviebot-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+      POSTGRES_USER: ${POSTGRES_DB_ROOT_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_DB_ROOT_PASSWORD}
+    volumes:
+      - moviebot-postgres-data-test:/var/lib/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d "+${POSTGRES_DB_NAME} ]
+      interval: 3s
+      timeout: 5s
+      retries: 10           # give it ~30s max to become ready
+      start_period: 5s
+    # ports:   # uncomment only if you need host access
+    #   - "5432:5432"
+
+  bot:
+    image: discordmoviebot:2.0.0
+    container_name: discord-movie-bot-test
+    restart: unless-stopped
+    environment:
+      JAVA_OPTS: "-Xms128M -Xmx5G -XX:+UseG1GC -XX:G1PeriodicGCInterval=60000 -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20"
+      POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
+      POSTGRES_DB_HOST: "postgres-test"
+      POSTGRES_DB_PORT: "5432"
+      POSTGRES_DB_USERNAME: 'moviebot_user' # ${POSTGRES_DB_USERNAME}
+      POSTGRES_DB_PASSWORD: ${POSTGRES_DB_PASSWORD}
+      DISCORD_MOVIE_BOT_TOKEN: ${DISCORD_MOVIE_BOT_TOKEN_TEST}
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+
+volumes:
+  moviebot-postgres-data-test:
+    name: moviebot-postgres-data-test

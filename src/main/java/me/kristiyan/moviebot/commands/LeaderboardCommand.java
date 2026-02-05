@@ -1,61 +1,78 @@
 package me.kristiyan.moviebot.commands;
 
-import me.kristiyan.moviebot.database.DatabaseManager;
+import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
+import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
+import me.kristiyan.moviebot.services.ServiceManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.awt.*;
 import java.util.List;
+import java.util.function.Function;
 
 public class LeaderboardCommand {
-    public static void handleLeaderboardCommand(SlashCommandInteractionEvent event, String guildId) {
+
+    public static void handleLeaderboardCommand(SlashCommandInteractionEvent event,
+                                                String guildId, ServiceManager serviceManager) {
         EmbedBuilder embed = new EmbedBuilder()
                 .setTitle("🏆 Leaderboards")
-                .setColor(Color.ORANGE);
+                .setColor(Color.ORANGE)
+                .setFooter("Keep playing to climb the leaderboard! 🎬");
 
-        // Get guild leaderboard
-        List<DatabaseManager.LeaderboardEntry> guildLeaderboard = DatabaseManager.getGuildLeaderboard(10);
+        var lbService = serviceManager.getLeaderboardsService();
 
-        if (!guildLeaderboard.isEmpty()) {
-            StringBuilder guildBoard = new StringBuilder();
-            for (int i = 0; i < guildLeaderboard.size(); i++) {
-                DatabaseManager.LeaderboardEntry entry = guildLeaderboard.get(i);
-                String medal = i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : (i + 1) + ".";
-                guildBoard.append(medal)
-                        .append(" **")
-                        .append(entry.name)
-                        .append("** - ")
-                        .append(entry.score)
-                        .append(" correct guess")
-                        .append(entry.score == 1 ? "" : "es")
-                        .append("\n");
-            }
-            embed.addField("🌍 Top Servers", guildBoard.toString(), false);
-        } else {
-            embed.addField("🌍 Top Servers", "No data yet!", false);
+        // 1. Global Server Leaderboards
+        addLeaderboardField(embed, "🌍 Top Servers (High Stakes 🔥)",
+                lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES, 10),
+                MemberStatusEntity::getGuildName);
+
+        addLeaderboardField(embed, "🌍 Top Servers",
+                lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10),
+                MemberStatusEntity::getGuildName);
+
+        // 2. Local Member Leaderboards
+        addLeaderboardField(embed, "👥 Top Players (This Server) (High Stakes 🔥)",
+                lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES),
+                MemberStatusEntity::getMemberNickname);
+
+        addLeaderboardField(embed, "👥 Top Players (This Server)",
+                lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES),
+                MemberStatusEntity::getMemberNickname);
+
+        event.replyEmbeds(embed.build()).queue();
+    }
+
+    /**
+     * Helper method to format lists into embed fields to avoid code duplication.
+     */
+    private static void addLeaderboardField(EmbedBuilder embed, String title,
+                                            List<MemberStatusEntity> entries,
+                                            Function<MemberStatusEntity, String> nameExtractor) {
+        if (entries == null || entries.isEmpty()) {
+            embed.addField(title, "*No data yet!*", false);
+            return;
         }
 
-        // Get member leaderboard for this guild
-        List<DatabaseManager.LeaderboardEntry> memberLeaderboard = DatabaseManager.getMemberLeaderboard(guildId, 10);
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < entries.size(); i++) {
+            MemberStatusEntity entry = entries.get(i);
+            int score = entry.getCorrectGuesses();
+            String name = nameExtractor.apply(entry);
 
-        if (!memberLeaderboard.isEmpty()) {
-            StringBuilder memberBoard = new StringBuilder();
-            for (int i = 0; i < memberLeaderboard.size(); i++) {
-                DatabaseManager.LeaderboardEntry entry = memberLeaderboard.get(i);
-                memberBoard.append(i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : (i + 1) + ".")
-                        .append(" **")
-                        .append(entry.name)
-                        .append("** - ")
-                        .append(entry.score)
-                        .append(" correct guess")
-                        .append(entry.score == 1 ? "" : "es")
-                        .append("\n");
-            }
-            embed.addField("👥 Top Players (This Server)", memberBoard.toString(), false);
-        } else {
-            embed.addField("👥 Top Players (This Server)", "No data yet!", false);
+            // Determine Medal/Rank
+            String rank = switch (i) {
+                case 0 -> "🥇";
+                case 1 -> "🥈";
+                case 2 -> "🥉";
+                default -> (i + 1) + ".";
+            };
+
+            builder.append(rank).append(" **").append(name).append("** - ")
+                    .append(score).append(" correct guess")
+                    .append(score == 1 ? "" : "es")
+                    .append("\n");
         }
 
-        event.replyEmbeds(embed.setFooter("Keep playing to climb the leaderboard! 🎬").build()).queue();
+        embed.addField(title, builder.toString(), false);
     }
 }

@@ -1,23 +1,27 @@
 package me.kristiyan.moviebot.database;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.ConsoleAppender;
+import ch.qos.logback.core.FileAppender;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGuessEntity;
-import me.kristiyan.moviebot.database.entities.leaderboards.GuildLeaderboardEntity;
 import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieCategoryEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 import me.kristiyan.moviebot.database.entities.premium.PremiumCodeEntity;
 import me.kristiyan.moviebot.database.entities.premium.PremiumUserEntity;
 import me.kristiyan.moviebot.database.entities.updates.UpdateAnnouncementEntity;
+import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.SessionFactory;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-
 
 public class DatabaseManager {
     private final HikariDataSource dataSource;
@@ -61,22 +65,32 @@ public class DatabaseManager {
 
         String hibernate_hbm2ddl_auto = System.getenv("HIBERNATE_HDM2DDL_AUTO");
         String showSqlEnv = System.getenv("HIBERNATE_SHOW_SQL");
+        String orderInsertsEnv = System.getenv("HIBERNATE_ORDER_INSERTS");
+        String orderUpdatesEnv = System.getenv("HIBERNATE_ORDER_UPDATES");
+        String batchSizeEnv = System.getenv("HIBERNATE_JDBC_BATCH_SIZE");
 
         setEntityManagerFactory(dataSource,
                 hibernate_hbm2ddl_auto == null ? "update" : hibernate_hbm2ddl_auto,
-                showSqlEnv != null && showSqlEnv.equals("true"));
+                showSqlEnv != null && showSqlEnv.equals("true"),
+                batchSizeEnv == null ? "50" : batchSizeEnv,
+                orderInsertsEnv != null && orderInsertsEnv.equals("true"),
+                orderUpdatesEnv != null && orderUpdatesEnv.equals("true"));
         System.out.println("Database initialized successfully!");
+
+        logConfig();
     }
 
-    public void setEntityManagerFactory(DataSource dataSource,
+    private void setEntityManagerFactory(DataSource dataSource,
                                                String hibernate_hbm2ddl_auto,
-                                               boolean showSQl) {
+                                               boolean showSQl,
+                                         String hibernate_jdbc_batch_size,
+                                         boolean hibernate_order_inserts,
+                                         boolean hibernate_order_updates) {
         if (sessionFactory == null) {
             Configuration configuration = new Configuration();
             configuration.addAnnotatedClass(ActiveGameEntity.class);
             configuration.addAnnotatedClass(ActiveGuessEntity.class);
 
-            configuration.addAnnotatedClass(GuildLeaderboardEntity.class);
             configuration.addAnnotatedClass(MemberStatusEntity.class);
 
             configuration.addAnnotatedClass(MovieEntity.class);
@@ -92,6 +106,9 @@ public class DatabaseManager {
                     .applySetting("hibernate.hbm2ddl.auto", hibernate_hbm2ddl_auto)
                     .applySetting("hibernate.show_sql", showSQl ? "true" : "false")
                     .applySetting("hibernate.format_sql", "true")
+                    .applySetting("hibernate.jdbc.batch_size", hibernate_jdbc_batch_size)
+                    .applySetting("hibernate.order_inserts", hibernate_order_inserts ? "true" : "false")
+                    .applySetting("hibernate.order_updates", hibernate_order_updates ? "true" : "false")
                     .applySetting(org.hibernate.cfg.JdbcSettings.JAKARTA_NON_JTA_DATASOURCE, dataSource)
                     .build());
         }
@@ -112,6 +129,39 @@ public class DatabaseManager {
             dataSource.close();
             System.out.println("Database and JPA resources shut down.");
         }
+    }
+
+    public static void logConfig() {
+        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        context.reset(); // Clear default config
+
+        // 1. Encoder for formatting
+        PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+        encoder.setContext(context);
+        encoder.setPattern("%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n");
+        encoder.start();
+
+        // 2. Console Appender
+        ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
+        consoleAppender.setContext(context);
+        consoleAppender.setEncoder(encoder);
+        consoleAppender.start();
+
+        // 3. File Appender for error_reports.log
+        FileAppender<ILoggingEvent> fileAppender = new FileAppender<>();
+        fileAppender.setContext(context);
+        fileAppender.setName("ErrorFile");
+        fileAppender.setFile("logs/error_reports.log");
+        fileAppender.setEncoder(encoder);
+        fileAppender.start();
+
+        // 4. Attach to Root Logger
+        Logger rootLogger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+        rootLogger.addAppender(consoleAppender);
+        rootLogger.addAppender(fileAppender);
+        rootLogger.setLevel(ch.qos.logback.classic.Level.INFO);
+
+        System.out.println("Logging config set!");
     }
 
     /*

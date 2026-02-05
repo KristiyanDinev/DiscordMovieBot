@@ -28,6 +28,8 @@ dependencies {
     // SLF4J Simple Logger (for JDA logging)
     implementation libs.slf4j
 
+    implementation libs.logback
+
     // JPA for easier DB management
     implementation libs.jpa
 

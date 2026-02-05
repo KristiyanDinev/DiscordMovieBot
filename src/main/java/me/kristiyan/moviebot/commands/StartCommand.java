@@ -1,36 +1,70 @@
 package me.kristiyan.moviebot.commands;
 
-import me.kristiyan.moviebot.database.DatabaseManager;
+import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
+import me.kristiyan.moviebot.services.ServiceManager;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.awt.*;
 
 public class StartCommand {
-    public static void handleStartCommand(SlashCommandInteractionEvent event, String guildId) {
-        // Check if there's already an active movie
-        if (DatabaseManager.getActiveMovie(guildId) != null) {
-            event.reply("⚠️ There's already an active movie to guess! Use `/guess <title>` to make your guess (one attempt only!), or `/skip` to reveal the answer and start a new round.")
-                    .setEphemeral(true)
-                    .queue();
+
+    public static void handleStartCommand(SlashCommandInteractionEvent event, String guildId,
+                                          ServiceManager serviceManager) {
+        Member member = event.getMember();
+        if (member == null) return;
+
+        // Parse options first to know what to check
+        OptionMapping typeMapping = event.getOption("type");
+        OptionMapping roundsMapping = event.getOption("rounds");
+        OptionMapping highStakesMapping = event.getOption("high_stakes");
+        OptionMapping lockedMapping = event.getOption("locked");
+
+        boolean locked = lockedMapping != null && lockedMapping.getAsBoolean();
+
+        // Context-Aware Check
+        if (locked) {
+            if (serviceManager.getActiveGameService().hasActiveLockedGame(guildId, member.getId())) {
+                event.reply("⚠️ You already have a locked game running! Finish it or use `/skip`.").setEphemeral(true).queue();
+                return;
+            }
+        } else {
+            if (serviceManager.getActiveGameService().hasActivePublicGame(guildId)) {
+                event.reply("⚠️ There is already a public movie guess in progress! Join in with `/guess`.").setEphemeral(true).queue();
+                return;
+            }
+        }
+
+        // Prepare Game Settings
+        String type = (typeMapping != null && "anime".equals(typeMapping.getAsString())) ? "anime" : "movie";
+        int totalRounds = (roundsMapping != null && roundsMapping.getAsInt() != 1) ? roundsMapping.getAsInt() : 1;
+        boolean highStakes = highStakesMapping != null && highStakesMapping.getAsBoolean();
+
+        MovieEntity movieEntity = serviceManager.getMovieService().getRandomMovie(type);
+        if (movieEntity == null) {
+            event.reply("❌ Could not retrieve movie information.").setEphemeral(true).queue();
             return;
         }
 
-        // Get a random movie
-        DatabaseManager.Movie movie = DatabaseManager.getRandomMovie();
-        if (movie == null) {
-            event.reply("❌ Could not retrieve movie information. Please contact support or try again.").setEphemeral(true).queue();
+        if (!serviceManager.getActiveGameService().startGame(guildId, movieEntity, totalRounds, highStakes, locked, member.getId())) {
+            event.reply("❌ Could not start the game.").setEphemeral(true).queue();
             return;
         }
-        // Store it in the database
-        DatabaseManager.setActiveMovie(guildId, movie.id);
 
-        // Send the GIF with a prompt
+        String description = "**Round 1 of " + totalRounds + "**\n\nCan you guess this %s? Use `/guess <title>`!".formatted(type);
+        if (highStakes) {
+            description += totalRounds == 1 ? "\n\n🔥 High Stakes: One guess only!" : "\n\n🔥 High Stakes: One guess per round!";
+        }
+
+        String title = locked ? "🎬 Guess The Movie! (Locked Mode)" : "🎬 Guess The Movie!";
+
         event.replyEmbeds(new EmbedBuilder()
-                .setTitle("🎬 Movie Guessing Game!")
-                .setDescription("Can you guess this movie? Use `/guess <title>` to make your guess!\n\n⚠️ **You only get ONE attempt!**")
-                .setColor(Color.BLUE)
-                .setImage(movie.gifUrl)
+                .setTitle(title)
+                .setDescription(description)
+                .setColor(locked ? Color.MAGENTA : Color.BLUE)
+                .setImage(movieEntity.getGifUrl())
                 .setFooter("Good luck! 🍿").build()).queue();
     }
 }

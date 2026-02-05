@@ -1,71 +1,125 @@
-import requests as rq
+import requests
 import time
+import json
+import os
 
+API_KEY = os.getenv("TMDB_API_RAT")
+BASE_URL = "https://api.themoviedb.org/3"
 
-def escape_sql(s: str) -> str:
-    return s.replace("'", "''")
+HEADERS = {
+    "Authorization": f"Bearer {API_KEY}"
+}
 
-def classify_content_type(genres):
-    anime_keys = {"Anime"}
-    return "anime" if any(g in anime_keys for g in genres) else "movie"
+def tmdb_get(endpoint, params=None):
+    url = f"{BASE_URL}{endpoint}"
+    response = requests.get(url, headers=HEADERS, params=params)
+    response.raise_for_status()
+    return response.json()
 
-def get_movie_metadata(title):
-    """
-    Search for a movie by title and return metadata:
-    - official title
-    - year
-    - IMDb rating
-    - genres
-    """
-    try:
-        result = 
-    except Exception as e:
-        print(f"-- ❌ search failed for {title}: {e}")
+def search_title(title):
+    data = tmdb_get(
+        "/search/multi",
+        params={"query": title, "include_adult": False}
+    )
+
+    for result in data.get("results", []):
+        if result["media_type"] in ["movie", "tv"]:
+            return result
+    return None
+
+def get_details(media_type, media_id):
+    return tmdb_get(f"/{media_type}/{media_id}")
+
+def get_translations(media_type, media_id):
+    data = tmdb_get(f"/{media_type}/{media_id}/translations")
+    translations = {}
+
+    for t in data.get("translations", []):
+        lang = t["iso_639_1"]
+        title = (
+            t["data"].get("title")
+            or t["data"].get("name")
+        )
+        if title:
+            translations[lang] = title
+
+    return translations
+
+def fetch_movie_or_anime(title):
+    search_result = search_title(title)
+    if not search_result:
+        print(f"❌ Not found: {title}")
         return None
-    if not result:
-        print(f"-- ❌ no IMDb results for {title}")
-        return None
+
+    media_type = search_result["media_type"]
+    media_id = search_result["id"]
+
+    details = get_details(media_type, media_id)
+    translations = get_translations(media_type, media_id)
 
     return {
-        "title": title,
-        "year": year,
-        "rating": round(rating, 1),
-        "genres": genres,
+        "searched_title": title,
+        "media_type": media_type,
+        "id": media_id,
+        "original_title": details.get("title") or details.get("name"),
+        "overview": details.get("overview"),
+        "release_date": details.get("release_date") or details.get("first_air_date"),
+        "genres": [g["name"] for g in details.get("genres", [])],
+        "runtime": details.get("runtime") or details.get("episode_run_time"),
+        "vote_average": details.get("vote_average"),  # rating
+        "popularity": details.get("popularity"),
+        "languages": translations
     }
 
-def sql_for_movie(movie, gif_url):
-    title = escape_sql(movie["title"])
-    gif = escape_sql(gif_url)
-    content_type = classify_content_type(movie["genres"])
+def fetch_all(output_file="movies_and_anime.json"):
+    # 1. Initialize or load existing results to avoid overwriting
+    if os.path.exists(output_file):
+        with open(output_file, "r", encoding="utf-8") as f:
+            try:
+                results = json.load(f)
+            except json.JSONDecodeError:
+                results = []
+    else:
+        results = []
 
-    movie_sql = f"""
-INSERT INTO movies (title, gif_url, content_type, movie_year, rating)
-VALUES ('{title}', '{gif}', '{content_type}', {movie["year"]}, {movie["rating"]})
-ON CONFLICT (title) DO NOTHING;
-"""
+    # Get a list of IDs or titles already saved to avoid duplicates
+    existing_titles = {item["searched_title"] for item in results}
 
-    category_sql = ""
-    for g in movie["genres"]:
-        cat = escape_sql(g.lower())
-        category_sql += f"""
-INSERT INTO movie_categories (movie_id, category)
-SELECT m.id, '{cat}'
-FROM movies m
-WHERE m.title = '{title}';
-"""
+    size = len(MOVIES)
+    for i in range(size):
+        movie = MOVIES[i]
+        title = movie[0]
+        gif = movie[1]
+        if title in existing_titles:
+            print(f"⏩ Skipping (already exists): {title}")
+            continue
 
-    return movie_sql + "\n" + category_sql
+        print(f"🔍 Fetching: {title}")
+        try:
+            data = fetch_movie_or_anime(title)
+            
+            if data:
+                data['gif'] = gif
+                results.append(data)
+                
+                # 2. Save immediately after a successful fetch
+                with open(output_file, "w", encoding="utf-8") as f:
+                    json.dump(results, f, ensure_ascii=False, indent=4)
+                
+                print(f"💾 Saved details for: {title}")
+            
+            time.sleep(0.25)  # polite rate limiting
+            
+        except Exception as e:
+            print(f"⚠️ Error fetching {title}: {e}")
+            # We continue to the next movie so one error doesn't stop the whole script
+            continue
 
-def process(title, gif_url):
-    data = get_movie_metadata(title)
-    if data:
-        print("-- ===============================")
-        print(sql_for_movie(data, gif_url))
-        print("-- ===============================\n")
-    time.sleep(1)
+    print(f"\n✅ Finished! Total items in {output_file}: {len(results)}")
 
 
-
+def main():
+    fetch_all([movie[0] for movie in MOVIES])
 
 MOVIES = [
         ('28 Years Later', 'https://i.giphy.com/ZQcFVn1ymQuuDIsOvS.gif'),
@@ -171,7 +225,6 @@ MOVIES = [
         ('Gachiakuta', 'https://i.giphy.com/ncg8YBWqAoX6c3oJ1g.gif'),
         ('Get Out', 'https://i.giphy.com/xUA7bgONYM1FrC7Vra.gif'),
         ('Ghost in the Shell', 'https://i.giphy.com/imKrSqrDxAuvS.gif'),
-        ('Ghost in the Shell (2026)', 'https://i.giphy.com/BO7p37KdlUaXA5nhWO.gif'),
         ('Ghost in the Shell: Stand Alone Complex', 'https://i.giphy.com/rvqCRPWCgctry.gif'),
         ('Ghostbusters', 'https://i.giphy.com/l3q2HS9FG81YSdkB2.gif'),
         ('Gintama', 'https://i.giphy.com/1BiWRqQSCNISA.gif'),
@@ -324,8 +377,11 @@ MOVIES = [
         ('Wonder Woman', 'https://i.giphy.com/pLnxbpVosgjE4.gif'),
         ('Zootopia 2', 'https://i.giphy.com/iHJEu41kg6r71Gt4pc.gif'),
         ('The Lego Batman Movie', 'https://i.giphy.com/l3q2tzon8OCC7BqmY.gif'),
-        ('The Lego Movie 2', 'https://i.giphy.com/9M1ryc3kRpXlLXE0Ro.gif')
+        ('The Lego Movie 2', 'https://i.giphy.com/9M1ryc3kRpXlLXE0Ro.gif'),
+        ('The Croods', 'https://i.giphy.com/Py4loHkx4eo1O'),
+        ('The Croods 2', 'https://i.giphy.com/hBLO4wF1x51e8tDKtc'),
+        ('Anaconda', 'https://i.giphy.com/jrYhObConD74JEKW8n')
     ]
+
 if __name__ == "__main__":
-    for title, gif in MOVIES:
-        process(title, gif)
+    main()

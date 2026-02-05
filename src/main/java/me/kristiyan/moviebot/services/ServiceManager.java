@@ -11,7 +11,7 @@ public class ServiceManager {
 
     public ServiceManager(DatabaseManager databaseManager) {
         activeGameService = new ActiveGameService(databaseManager);
-        leaderboardsService = new LeaderboardsService(databaseManager);
+        leaderboardsService = new LeaderboardsService(databaseManager, this);
         movieService = new MovieService(databaseManager);
         premiumService = new PremiumService(databaseManager);
         updateAnnouncementService = new UpdateAnnouncementService(databaseManager);

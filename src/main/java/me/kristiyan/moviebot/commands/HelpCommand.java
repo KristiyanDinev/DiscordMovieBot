@@ -9,24 +9,33 @@ public class HelpCommand {
     public static void handleHelpCommand(SlashCommandInteractionEvent event) {
         event.replyEmbeds(new EmbedBuilder()
                 .setTitle("🎬 Guess The Movie: Help")
-                .setDescription("Test your cinema knowledge! I'll show you a GIF, and you guess the movie or anime title.")
+                .setDescription("Test your cinema knowledge! I'll show you a scene, and you guess the movie or anime title.")
                 .setColor(new Color(245, 197, 24))
+                .setThumbnail(event.getJDA().getSelfUser().getEffectiveAvatarUrl())
+
                 .addField("🎮 How to Play",
-                        "1. Type `/start` to spawn a random movie GIF.\n" +
-                                "2. Recognize the scene?\n" +
-                                "3. Use `/guess <title>` to lock in your answer!",
+                        "1. **Start:** Use `/start` to begin a match.\n" +
+                                "2. **Watch:** Scene will appear in the channel.\n" +
+                                "3. **Solve:** Use `/guess <title>` to give your answer!",
                         false)
 
-                .addField("⚠️ The Golden Rule",
-                        "You only get **ONE** guess per movie!\n" +
-                                "If you guess wrong, the round ends and the answer is revealed. No second chances!",
+                .addField("👥 Social vs. 👤 Solo",
+                        "• **Community Mode:** By default, **anyone** in the server can join the fun and guess!\n" +
+                                "• **Solo Mode:** Want to test your own skills? Use the `solo` option in `/start` to lock the game to yourself.",
                         false)
-                .addField("Commands",
-                        "`/start` • Start a new game round\n" +
-                                "`/guess [title]` • Submit your answer\n" +
-                                "`/skip` • Skip the guess and see the answer\n" +
-                                "`/leaderboard` • View server and global stats",
+
+                .addField("🔥 High Stakes",
+                        "Too easy? Enable `high_stakes` in your `/start` command.",
                         false)
-                .setFooter("Good luck! 🍿").build()).queue();
+
+                .addField("🤖 Commands",
+                        "`/start` • Begin a new game (with optional filters)\n" +
+                                "`/guess` • Submit your movie or anime title\n" +
+                                "`/skip` • Give up and see the answer\n" +
+                                "`/leaderboard` • Compare your rank globally and locally" +
+                                "`/updates` • See what's new in the latest version",
+                        false)
+
+                .setFooter("\uD83C\uDF7F Popcorn ready? Good luck!").build()).queue();
     }
 }
