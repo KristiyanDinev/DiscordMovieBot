@@ -88,7 +88,7 @@ public class ActiveGameService {
             CriteriaQuery<ActiveGameEntity> cq = cb.createQuery(ActiveGameEntity.class);
             Root<ActiveGameEntity> root = cq.from(ActiveGameEntity.class);
             cq.select(root).where(cb.equal(root.get("guildId"), guildId));
-            return session.createQuery(cq).getSingleResult();
+            return session.createQuery(cq).setMaxResults(1).uniqueResult();
         }  catch (Exception ex) {
             logger.error(ex.fillInStackTrace().toString());
             System.err.println(ex.getMessage());

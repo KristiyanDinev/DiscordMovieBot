@@ -40,7 +40,7 @@ public class Main {
 
             //testMain.testMovieReport();
 
-            OptionData typeOption = new OptionData(OptionType.STRING, "type", "Choose the movie type", true)
+            OptionData typeOption = new OptionData(OptionType.STRING, "type", "Choose the movie type", false)
                     .addChoice("Movie", "movie")
                     .addChoice("Anime", "anime");
 

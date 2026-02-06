@@ -1,24 +1,43 @@
 
+
 services:
   postgres:
     image: postgres:18.1
     container_name: moviebot-postgres
     restart: unless-stopped
+    command: -c "app.user=${POSTGRES_DB_USERNAME}" -c "app.password=${POSTGRES_DB_PASSWORD}"
     environment:
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+      POSTGRES_USER: ${POSTGRES_DB_ROOT_USER}
       POSTGRES_PASSWORD: ${POSTGRES_DB_ROOT_PASSWORD}
     volumes:
       - moviebot-postgres-data:/var/lib/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - discordbots
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_DB_ROOT_USER} -d ${POSTGRES_DB_NAME}"]
       interval: 3s
       timeout: 5s
       retries: 10           # give it ~30s max to become ready
       start_period: 5s
-    # ports:   # uncomment only if you need host access
-    #   - "5432:5432"
+
+  pgAdmin:
+    image: dpage/pgadmin4
+    container_name: moviebot-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    networks:
+      - discordbots
 
   bot:
-    image: discordmoviebot:latest
+    image: discordmoviebot:2.0.0
     container_name: discord-movie-bot
     restart: unless-stopped
     environment:
@@ -29,10 +48,20 @@ services:
       POSTGRES_DB_USERNAME: ${POSTGRES_DB_USERNAME}
       POSTGRES_DB_PASSWORD: ${POSTGRES_DB_PASSWORD}
       DISCORD_MOVIE_BOT_TOKEN: ${DISCORD_MOVIE_BOT_TOKEN}
+      REPORT_GUILD_ID: "1466675456127533107"
+      REPORT_CHANNEL_ID: "1469215922144415754"
+    volumes:
+      - ./bot_logs:/app/logs
+    networks:
+      - discordbots
     depends_on:
       postgres:
         condition: service_healthy
 
+networks:
+  discordbots:
+
 volumes:
+  pgadmin-data:
   moviebot-postgres-data:
     name: moviebot-postgres-data

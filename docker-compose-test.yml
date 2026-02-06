@@ -36,16 +36,16 @@ services:
     networks:
       - discordbots
 
-  bot-test:
+  bot:
     image: discordmoviebot:2.0.0
     container_name: discord-movie-bot-test
     restart: unless-stopped
     environment:
       JAVA_OPTS: "-Xms128M -Xmx5G -XX:+UseG1GC -XX:G1PeriodicGCInterval=60000 -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20"
       POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
-      POSTGRES_DB_HOST: "postgres-test"
+      POSTGRES_DB_HOST: "postgres"
       POSTGRES_DB_PORT: "5432"
-      POSTGRES_DB_USERNAME: 'moviebot_user' # ${POSTGRES_DB_USERNAME}
+      POSTGRES_DB_USERNAME: ${POSTGRES_DB_USERNAME}
       POSTGRES_DB_PASSWORD: ${POSTGRES_DB_PASSWORD}
       DISCORD_MOVIE_BOT_TOKEN: ${TESTING_DISCORD_BOT_TOKEN}
       REPORT_GUILD_ID: "1466675456127533107"

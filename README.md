@@ -6,40 +6,44 @@ Invite link: https://discord.com/oauth2/authorize?client_id=1466485885074800854&
 
 ToS and Privacy policy: https://kristiyandinev.github.io/Discord-Movie-Bot-Static-Webpage/
 
-## Features
+- https://top.gg/bot/1466485885074800854
 
-- 🎮 **Movie Guessing Game**: Bot shows a GIF from a random popular movie
-- 🎯 **One Attempt Only**: Each user gets ONE guess per movie - guess wisely!
-- 🤖 **Smart Matching**: Fuzzy matching algorithm that accepts partial titles, handles typos, ignores special characters and case
-- 🔴 **Answer Revealed**: Wrong guesses reveal the answer immediately and end the round
-- 📊 **Dual Leaderboards**:
-    - Server leaderboard (guilds with most correct guesses)
-    - Member leaderboard (top players per server)
-- 💾 **SQLite Database**: Persistent storage of active games and leaderboards
-- ✅ **Discord Verified**: Uses only required intents (GUILDS, GUILD_MEMBERS) for bot verification
-- 🏗️ **Gradle Build**: Easy setup with Gradle Wrapper (no Gradle installation required!)
+# 🎬 Guess The Movie
 
-## Commands
+**Guess The Movie** is the cinematic trivia for Discord. Test your skills against a large library of scenes, compete with friends, and climb the global rankings.
 
-- `/start [movie/anime] [total_rounds: int] [high_stakes: true / false] [locked: true / false]` - Start a new movie guessing round with a GIF
-- `/guess <title>` - Guess the movie title 
-- `/leaderboard` - View server and member leaderboards
-- `/skip` - Skip the current movie, reveal the answer and try again
-- `/help` - Displays the help command
-- `/updates` - See what's new in the latest version
+---
 
-## Game Rules
+## 🍿 Features
 
-1. Use `/start` to begin a new round - a GIF will be shown
-2. Each member gets **ONE guess only** per movie
-3. If you guess correctly ✅:
-    - Your score increases
-    - The round ends and a new movie can be started
-4. If you guess incorrectly ❌:
-    - The answer is revealed to everyone
-    - The round ends immediately
-    - No score is awarded
-5. Use `/skip` to give up and see the answer
+* **Massive Library:** Over 100+ Movies and 100+ Anime Series, hand-picked for quality.
+* **Smart Matching:** Our fuzzy-logic system recognizes your answer even if you have a slight typo.
+* **High Stakes:** Think you're a pro? Enable `high_stakes` mode for a more difficult challenge.
+* **Solo vs. Social:** Play with the whole server in **Community Mode** or lock the game to yourself with **Solo Mode**.
+
+---
+
+## 🎮 How to Play
+
+1.  **Start a Game:** Use `/start` to fire up the projector.
+2.  **Analyze the Scene:** A high-quality image from a movie or anime will be displayed.
+3.  **Take Your Shot:** Use `/guess <title>` to submit your answer. You only get **one chance**!
+
+---
+
+## 🛠️ Commands
+`/start`  • Start a new round (Optional: `solo`, `high_stakes`).
+`/guess`  • Submit your movie or anime title.
+`/skip`  • Give up, reveal the answer, and start fresh.
+`/leaderboard`  • View global and local rankings.
+`/updates`  • See the latest movies and features added.
+`/report` • Report an inaccurate image or title.
+---
+## 🏆 Competitive Play
+
+Climb the **Member Leaderboard** to become the top critic in your server, or work together to push your guild to the top of the **Global Server Leaderboard**. Top voters and players are rewarded with special ranks!
+
+> **Popcorn ready? Good luck!**
 
 ## Required Permissions & Intents
 

@@ -48,7 +48,8 @@ public class GuessCommand {
             EmbedBuilder embed = new EmbedBuilder()
                     .setTitle("🎉 Correct!")
                     .setDescription("**" + member.getEffectiveName() + "** guessed it right!")
-                    .addField(type.substring(0, 1).toUpperCase() + type.substring(1), "**" + title + "**", false)
+                    .addField(title, "was the "+type, false)
+                    .addField(guess, "was their Guess", false)
                     .setColor(Color.GREEN);
 
             if (isGameOver) {
@@ -92,10 +93,11 @@ public class GuessCommand {
             serviceManager.getActiveGameService().endGame(activeGame);
 
             event.replyEmbeds(new EmbedBuilder()
+                    .setColor(Color.RED)
                     .setTitle("❌ Wrong!")
                     .setDescription("**" + member.getEffectiveName() + "** guessed incorrectly!")
-                    .addField("The " + type + " was", "**" + title + "**", false)
-                    .setColor(Color.RED)
+                    .addField(title, "was the "+type, false)
+                    .addField(guess, "was their Guess", false)
                     .setFooter("Game Over! Start a new match with `/start` 🎬").build()).queue();
         }
     }
