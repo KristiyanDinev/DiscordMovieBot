@@ -6,6 +6,9 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
+import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
+import ch.qos.logback.core.rolling.RollingFileAppender;
+import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
@@ -15,10 +18,12 @@ import me.kristiyan.moviebot.database.entities.movie.MovieCategoryEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 import me.kristiyan.moviebot.database.entities.premium.PremiumCodeEntity;
 import me.kristiyan.moviebot.database.entities.premium.PremiumUserEntity;
+import me.kristiyan.moviebot.database.entities.reports.MovieReportEntity;
 import me.kristiyan.moviebot.database.entities.updates.UpdateAnnouncementEntity;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
@@ -32,11 +37,12 @@ public class DatabaseManager {
         HikariConfig config = new HikariConfig();
 
         String dbHost = System.getenv("POSTGRES_DB_HOST");
-        Integer dbPort = Integer.getInteger(System.getenv("POSTGRES_DB_PORT"));
+        String dbPortStr = System.getenv("POSTGRES_DB_PORT");
         String dbUser = System.getenv("POSTGRES_DB_USERNAME");
         String dbPassword = System.getenv("POSTGRES_DB_PASSWORD");
         String dbName = System.getenv("POSTGRES_DB_NAME");
 
+        Integer dbPort = (dbPortStr != null) ? Integer.parseInt(dbPortStr) : null;
         // Validate environment variables
         if (dbHost == null || dbPort == null || dbUser == null || dbPassword == null || dbName == null) {
             throw new RuntimeException("Missing required database environment variables. " +
@@ -98,11 +104,13 @@ public class DatabaseManager {
 
             configuration.addAnnotatedClass(PremiumUserEntity.class);
             configuration.addAnnotatedClass(PremiumCodeEntity.class);
+
             configuration.addAnnotatedClass(UpdateAnnouncementEntity.class);
+
+            configuration.addAnnotatedClass(MovieReportEntity.class);
 
             sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder()
                     // Add standard properties
-                    .applySetting("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect")
                     .applySetting("hibernate.hbm2ddl.auto", hibernate_hbm2ddl_auto)
                     .applySetting("hibernate.show_sql", showSQl ? "true" : "false")
                     .applySetting("hibernate.format_sql", "true")
@@ -132,36 +140,58 @@ public class DatabaseManager {
     }
 
     public static void logConfig() {
-        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.reset(); // Clear default config
+        // Check if we are actually using Logback to prevent the ClassCastException
+        ILoggerFactory factory = LoggerFactory.getILoggerFactory();
+        if (!(factory instanceof LoggerContext context)) {
+            System.err.println("Logback not found on classpath. Current factory: " + factory.getClass().getName());
+            return;
+        }
 
-        // 1. Encoder for formatting
+        context.reset();
+
         PatternLayoutEncoder encoder = new PatternLayoutEncoder();
         encoder.setContext(context);
-        encoder.setPattern("%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n");
+        encoder.setPattern("%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n");
         encoder.start();
 
-        // 2. Console Appender
+        // 1. Console Appender
         ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
         consoleAppender.setContext(context);
         consoleAppender.setEncoder(encoder);
         consoleAppender.start();
 
-        // 3. File Appender for error_reports.log
-        FileAppender<ILoggingEvent> fileAppender = new FileAppender<>();
-        fileAppender.setContext(context);
-        fileAppender.setName("ErrorFile");
-        fileAppender.setFile("logs/error_reports.log");
-        fileAppender.setEncoder(encoder);
-        fileAppender.start();
+        // 2. Rolling File Appender (1MB limit)
+        RollingFileAppender<ILoggingEvent> rollingFileAppender = new RollingFileAppender<>();
+        rollingFileAppender.setContext(context);
+        rollingFileAppender.setName("ErrorFile");
+        rollingFileAppender.setFile("logs/error_reports.log"); // Active log file
 
-        // 4. Attach to Root Logger
+        // Policy: Roll over when file reaches 1MB
+        SizeBasedTriggeringPolicy<ILoggingEvent> triggeringPolicy = new SizeBasedTriggeringPolicy<>();
+        triggeringPolicy.setContext(context);
+        triggeringPolicy.setMaxFileSize(ch.qos.logback.core.util.FileSize.valueOf("1MB"));
+        triggeringPolicy.start();
+
+        // Policy: How to name the archived files (e.g., error_reports.log.0.gz)
+        FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
+        rollingPolicy.setContext(context);
+        rollingPolicy.setParent(rollingFileAppender);
+        rollingPolicy.setFileNamePattern("logs/archive/error_reports.%i.log.zip"); // Compresses old logs
+        rollingPolicy.setMinIndex(1);
+        rollingPolicy.start();
+
+        rollingFileAppender.setTriggeringPolicy(triggeringPolicy);
+        rollingFileAppender.setRollingPolicy(rollingPolicy);
+        rollingFileAppender.setEncoder(encoder);
+        rollingFileAppender.start();
+
+        // 3. Attach to Root
         Logger rootLogger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
         rootLogger.addAppender(consoleAppender);
-        rootLogger.addAppender(fileAppender);
+        rootLogger.addAppender(rollingFileAppender);
         rootLogger.setLevel(ch.qos.logback.classic.Level.INFO);
 
-        System.out.println("Logging config set!");
+        System.out.println("Logging config initialized with 1MB rolling files!");
     }
 
     /*

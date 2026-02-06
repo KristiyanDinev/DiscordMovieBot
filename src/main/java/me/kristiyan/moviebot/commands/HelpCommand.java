@@ -33,7 +33,8 @@ public class HelpCommand {
                                 "`/guess` • Submit your movie or anime title\n" +
                                 "`/skip` • Give up and see the answer\n" +
                                 "`/leaderboard` • Compare your rank globally and locally" +
-                                "`/updates` • See what's new in the latest version",
+                                "`/updates` • See what's new in the latest version" +
+                                "`/report [reason]` • Report an inaccurate movie for your current game",
                         false)
 
                 .setFooter("\uD83C\uDF7F Popcorn ready? Good luck!").build()).queue();

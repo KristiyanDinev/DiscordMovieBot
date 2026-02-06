@@ -20,19 +20,26 @@ public class Main {
             // Initialize database
             DatabaseManager databaseManager = new DatabaseManager();
             Runtime.getRuntime().addShutdownHook(new Thread(databaseManager::shutdown));
+
             serviceManager = new ServiceManager(databaseManager);
-            new TestMain(databaseManager, serviceManager);
 
             // Create JDA instance with minimal required intents
             // TESTING_DISCORD_BOT_TOKEN
             // DISCORD_MOVIE_BOT_TOKEN
-            JDA jda = JDABuilder.createDefault(System.getenv("TESTING_DISCORD_BOT_TOKEN"))
+            JDA jda = JDABuilder.createDefault(System.getenv("DISCORD_MOVIE_BOT_TOKEN"))
                     .setActivity(Activity.playing("Movie Guessing Game! Use /start"))
                     .addEventListeners(new CommandListener())
                     .build();
 
+            //TestMain testMain = new TestMain(databaseManager, serviceManager, jda);
+
             // Wait for JDA to be ready
             jda.awaitReady();
+            serviceManager.getMovieReportService().setTextChannel(jda, System.getenv("REPORT_GUILD_ID"),
+                    System.getenv("REPORT_CHANNEL_ID"));
+
+            //testMain.testMovieReport();
+
             OptionData typeOption = new OptionData(OptionType.STRING, "type", "Choose the movie type", true)
                     .addChoice("Movie", "movie")
                     .addChoice("Anime", "anime");
@@ -40,7 +47,6 @@ public class Main {
             // Register slash commands
             jda.updateCommands().addCommands(
                     Commands.slash("start", "Start guessing movies to your liking")
-                            .addOption(OptionType.STRING, "type", "Choose between Movies or Anime", true)
                             .addOptions(typeOption)
                             .addOption(OptionType.INTEGER, "rounds",
                                     "How many correct guesses can you get?",
@@ -58,10 +64,15 @@ public class Main {
 
                     Commands.slash("leaderboard", "Show the server and member leaderboards"),
                     Commands.slash("skip", "Skip the current movie and start a new round (reveals the answer)"),
-                    Commands.slash("help", "Displays the help menu")
+                    Commands.slash("help", "Displays the help menu"),
+                    Commands.slash("updates", "See what's new in the latest version"),
+                    Commands.slash("report", "Report an inaccurate movie for your current game")
+                            .addOption(OptionType.STRING, "reason",
+                                    "The is the reason of your report? How was the movie inaccurate?",
+                                    true)
             ).queue();
 
-            System.out.println("Guess The Movie Bot is ready!");
+            System.out.println(jda.getSelfUser().getName()+" is ready!");
 
         } catch (Exception e) {
             System.err.println("Failed to start bot: " + e.getMessage());

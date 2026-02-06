@@ -12,9 +12,9 @@ public class ActiveGuessEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "active_game_id", nullable = false)
     private ActiveGameEntity activeGame;
 

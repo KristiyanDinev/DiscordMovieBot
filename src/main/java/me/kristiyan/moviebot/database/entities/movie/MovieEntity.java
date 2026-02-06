@@ -29,16 +29,18 @@ public class MovieEntity {
     @Column(name = "movie_year", nullable = false)
     private int year;
 
-    @Column(nullable = false, precision = 3, scale = 1)
-    private BigDecimal rating;  // vote_average
+    // Rating: precision 4, scale 2 allows up to 99.99 (e.g., 8.38)
+    @Column(nullable = false, precision = 4, scale = 2)
+    private BigDecimal rating;
 
     @Column(nullable = false)
     private int duration;
 
-    @Column(nullable = false, precision = 3, scale = 1)
+    // Popularity: precision 12, scale 4 allows huge numbers (e.g., 23.3178 or 1500.50)
+    @Column(nullable = false, precision = 12, scale = 4)
     private BigDecimal popularity;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -72,4 +74,10 @@ public class MovieEntity {
     public void addCategory(String categoryName) {
         this.categories.add(new MovieCategoryEntity(this, categoryName));
     }
+
+    public BigDecimal getPopularity() { return popularity; }
+    public void setPopularity(BigDecimal popularity) { this.popularity = popularity; }
+
+    public int getDuration() { return duration; }
+    public void setDuration(int duration) { this.duration = duration; }
 }

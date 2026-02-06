@@ -39,7 +39,7 @@ public class GuessCommand {
 
         if (MovieMatcher.isMatch(guess, title)) {
             // Record attempt
-            serviceManager.getActiveGameService().recordGuessAttempt(guildId, member.getId(),
+            serviceManager.getActiveGameService().recordGuessAttempt(guildId, member.getId(), member.getEffectiveName(),
                     activeGame.getCurrentRound(), activeGame);
 
             int nextRound = activeGame.getCurrentRound() + 1;

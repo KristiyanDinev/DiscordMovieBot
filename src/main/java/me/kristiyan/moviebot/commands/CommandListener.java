@@ -21,6 +21,7 @@ public class CommandListener extends ListenerAdapter {
             case "leaderboard" -> LeaderboardCommand.handleLeaderboardCommand(event, guildId, Main.serviceManager);
             case "skip" -> SkipCommand.handleSkipCommand(event, guildId, Main.serviceManager);
             case "updates" -> UpdatesCommand.handleUpdatesCommand(event, Main.serviceManager);
+            case "report"  -> ReportCommand.handleReportCommand(event, guildId, Main.serviceManager);
         }
     }
 }

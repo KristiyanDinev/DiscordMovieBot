@@ -10,6 +10,8 @@ import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
 import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class LeaderboardsService {
+    private static final Logger logger = LoggerFactory.getLogger(LeaderboardsService.class);
     private final DatabaseManager databaseManager;
     private final ServiceManager serviceManager;
 
@@ -56,6 +59,13 @@ public class LeaderboardsService {
                     .getResultStream()
                     .collect(Collectors.toMap(MemberStatusEntity::getMemberId, s -> s));
 
+            Map<String, String> idToNickname = correctGuesses.stream()
+                    .collect(Collectors.toMap(
+                            ActiveGuessEntity::getMemberId,
+                            ActiveGuessEntity::getMemberNickname,
+                            (existing, replacement) -> existing // Keep the first one found if duplicates exist
+                    ));
+
             // 3. Process each UNIQUE member
             Transaction tx = session.beginTransaction();
 
@@ -68,7 +78,7 @@ public class LeaderboardsService {
                     entity = new MemberStatusEntity();
                     entity.setGuildId(guildId);
                     entity.setMemberId(mId);
-                    entity.setMemberNickname(entity.getMemberNickname());
+                    entity.setMemberNickname(idToNickname.getOrDefault(mId, "Unknown User"));
                     entity.setGuildName(guildName);
                     entity.setStatusType(leaderboardMemberStatus.toString());
                     entity.setCorrectGuesses(pointsToAdd);
@@ -80,49 +90,37 @@ public class LeaderboardsService {
             }
 
             tx.commit();
+        } catch (Exception ex) {
+            logger.error(ex.fillInStackTrace().toString());
+            System.err.println(ex.getMessage());
         }
     }
 
     public List<MemberStatusEntity> getGuildLeaderboard(LeaderboardMemberStatus leaderboardMemberStatus, int limit) {
         try (Session session = databaseManager.getSessionFactory().openSession()) {
             CriteriaBuilder cb = session.getCriteriaBuilder();
-
-            // 1. Subquery: Find the MAX(correctGuesses) for each guild
-            // This identifies what the winning score is for every guild.
-            CriteriaQuery<Integer> subquery = cb.createQuery(Integer.class);
-            Root<MemberStatusEntity> subRoot = subquery.from(MemberStatusEntity.class);
-
-            subquery.select(cb.max(subRoot.get("correctGuesses")))
-                    .where(cb.equal(subRoot.get("statusType"), leaderboardMemberStatus.toString()))
-                    .groupBy(subRoot.get("guildId"));
-
-            // 2. Main Query: Fetch the entities that match those max scores
             CriteriaQuery<MemberStatusEntity> mainQuery = cb.createQuery(MemberStatusEntity.class);
             Root<MemberStatusEntity> root = mainQuery.from(MemberStatusEntity.class);
 
-            // We filter by status and ensure the score is in the list of "maximums"
+            jakarta.persistence.criteria.Subquery<Integer> sub = mainQuery.subquery(Integer.class);
+            Root<MemberStatusEntity> subRoot = sub.from(MemberStatusEntity.class);
+            sub.select(cb.max(subRoot.get("correctGuesses")))
+                    .where(cb.equal(subRoot.get("statusType"), leaderboardMemberStatus.toString()))
+                    .groupBy(subRoot.get("guildId"));
+
             mainQuery.select(root)
                     .where(
                             cb.equal(root.get("statusType"), leaderboardMemberStatus.toString()),
-                            root.get("correctGuesses").in(subquery)
+                            root.get("correctGuesses").in(sub)
                     )
-                    // Order by the score descending to get the actual "Top" guilds first
                     .orderBy(cb.desc(root.get("correctGuesses")));
 
-            // 3. Apply the limit and handle duplicates
-            // Note: If two users in one guild have the same max score, we use distinct or a stream limit
-            List<MemberStatusEntity> results = session.createQuery(mainQuery)
-                    .setMaxResults(limit)
-                    .getResultList();
+            return session.createQuery(mainQuery).setMaxResults(limit).getResultList();
 
-            // 4. De-duplicate in Java
-            Map<String, MemberStatusEntity> uniqueGuilds = new LinkedHashMap<>();
-            for (MemberStatusEntity entity : results) {
-                // This prevents the same guild from appearing twice if 2 people have the top score
-                uniqueGuilds.putIfAbsent(entity.getGuildId(), entity);
-            }
-
-            return new ArrayList<>(uniqueGuilds.values());
+        } catch (Exception ex) {
+            logger.error(ex.fillInStackTrace().toString());
+            System.err.println(ex.getMessage());
+            return List.of();
         }
     }
 
@@ -150,6 +148,10 @@ public class LeaderboardsService {
             return session.createQuery(cq)
                     .setMaxResults(limit)
                     .getResultList();
+        } catch (Exception ex) {
+            logger.error(ex.fillInStackTrace().toString());
+            System.err.println(ex.getMessage());
+            return List.of();
         }
     }
 }

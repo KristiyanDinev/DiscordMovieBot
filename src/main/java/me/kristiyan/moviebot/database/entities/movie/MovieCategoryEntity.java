@@ -9,30 +9,27 @@ public class MovieCategoryEntity {
     @EmbeddedId
     private MovieCategoryKey id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("movieId")
     @JoinColumn(name = "movie_id", nullable = false)
     private MovieEntity movie;
-
-    @Column(name = "category", length = 30, nullable = false)
-    @MapsId("category")
-    private String category;
 
     // required for JPA composite key classes
     public MovieCategoryEntity() {}
 
     public MovieCategoryEntity(MovieEntity movie, String category) {
         this.movie = movie;
-        this.category = category;
+        // Set the value inside the ID object instead
+        this.id = new MovieCategoryKey(movie.getId(), category);
     }
 
-    // Getters & Setters
-    public MovieEntity getMovie() { return movie; }
-    public void setMovie(MovieEntity movie) { this.movie = movie; }
+    // Update your getter/setter to use the ID object
+    public String getCategory() {
+        return id != null ? id.getCategory() : null;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-
-    public MovieCategoryKey getId() { return id; }
-    public void setId(MovieCategoryKey id) { this.id = id; }
+    public void setCategory(String category) {
+        if (this.id == null) this.id = new MovieCategoryKey();
+        this.id.setCategory(category);
+    }
 }

@@ -1,18 +1,18 @@
--- 1. Create the App User (Limited Permissions)
 DO $$
+    DECLARE
+        u_name text := current_setting('app.user');
+        u_pass text := current_setting('app.password');
     BEGIN
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'moviebot_user') THEN
-            -- We use a placeholder here; you can also pass this via shell,
-            -- but for local test scripts, hardcoding the app-level PW is common.
-            CREATE USER moviebot_user WITH PASSWORD '';
+        -- 1. Create the User
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = u_name) THEN
+            EXECUTE format('CREATE USER %I WITH PASSWORD %L', u_name, u_pass);
         END IF;
-    END $$;
 
--- 2. Setup Permissions for the Bot
--- Grant the user rights to create tables and use the public schema
-GRANT ALL PRIVILEGES ON SCHEMA public TO moviebot_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO moviebot_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO moviebot_user;
+        -- 2. Setup Permissions for the Bot
+        EXECUTE format('GRANT USAGE, CREATE ON SCHEMA public TO %I', u_name);
+        EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO %I', u_name);
+        EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO %I', u_name);
+    END $$;
 
 -- Create the movies table based on MovieEntity
 CREATE TABLE IF NOT EXISTS movies (
@@ -21,14 +21,18 @@ CREATE TABLE IF NOT EXISTS movies (
                                       gif_url VARCHAR(255) NOT NULL,
                                       content_type VARCHAR(50) NOT NULL,
                                       movie_year INTEGER NOT NULL,
-                                      rating NUMERIC(3, 1) NOT NULL,
+                                      rating NUMERIC(4, 2) NOT NULL,
                                       duration INTEGER NOT NULL,
-                                      popularity NUMERIC(3, 1) NOT NULL,
+                                      popularity NUMERIC(12, 4) NOT NULL,
                                       created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Ownership for security (as discussed)
-ALTER TABLE movies OWNER TO moviebot_user;
+DO $$
+    DECLARE u_name text := current_setting('app.user');
+    BEGIN
+        EXECUTE format('ALTER TABLE movies OWNER TO %I', u_name);
+END $$;
 
 -- Create the composite index from your @Index annotation
 CREATE INDEX IF NOT EXISTS idx_movies_content_type_year_rating
@@ -47,7 +51,11 @@ CREATE TABLE IF NOT EXISTS movie_categories (
 );
 
 -- Ensure the bot user can manage this table
-ALTER TABLE movie_categories OWNER TO moviebot_user;
+DO $$
+    DECLARE u_name text := current_setting('app.user');
+    BEGIN
+        EXECUTE format('ALTER TABLE movie_categories OWNER TO %I', u_name);
+END $$;
 
 BEGIN;
 
@@ -101,7 +109,7 @@ WITH inserted_movies AS (
             ('Civil War', 'https://i.giphy.com/z4THDw2us3aCY.gif', 'movie', 2024, 6.846, 109, 10.4703),
             ('Clannad: After Story', 'https://i.giphy.com/fARFPMuspJRx6.gif', 'anime', 2007, 8.3, 24, 12.1772),
             ('Claymore', 'https://i.giphy.com/ZxL2arcSrEOiYuVhBf.gif', 'anime', 2007, 8.138, 23, 10.251),
-            ('Coco', 'https://i.giphy.com/l2YWwAjBwZdjxIXBe.gif', 'movie', 2017, 8.199, 105, 18.6261),
+            ('Coco', 'https://i.giphy.com/MCL6prm5SIeuFb91xZ.gif', 'movie', 2017, 8.199, 105, 18.6261),
             ('Code Geass: Lelouch of the Rebellion', 'https://i.giphy.com/aQFiKGhqerg2Y.gif', 'anime', 2006, 8.342, 25, 23.9873),
             ('Coming to America', 'https://i.giphy.com/2WBNMTzB6uB1u.gif', 'movie', 1988, 6.879, 117, 6.2366),
             ('Cowboy Bebop', 'https://i.giphy.com/MBUku5f2PeXFoNN7O8.gif', 'anime', 1998, 8.51, 25, 28.8081),

@@ -18,7 +18,7 @@ public class ActiveGameEntity {
     @Column(name = "guild_id", nullable = false)
     private String guildId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "movie_id", nullable = false)
     private MovieEntity movie;
 

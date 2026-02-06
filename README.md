@@ -104,6 +104,8 @@ The bot uses these ENV variables in order to work:
 - `POSTGRES_DB_PORT` - The PostgresSQL database Port
 - `POSTGRES_DB_USERNAME` - The PostgresSQL user to connect as
 - `POSTGRES_DB_PASSWORD` - The PostgresSQL user's password for authentication.
+- `REPORT_GUILD_ID` - The guild id where the report channel is
+- `REPORT_CHANNEL_ID` - The text channel id where to send the reports
 
 The following are **optional** and they default to some value if they are not set:
 

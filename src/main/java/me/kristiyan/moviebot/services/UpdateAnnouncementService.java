@@ -7,10 +7,13 @@ import me.kristiyan.moviebot.database.DatabaseManager;
 import me.kristiyan.moviebot.database.entities.updates.UpdateAnnouncementEntity;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class UpdateAnnouncementService {
+    private static final Logger logger = LoggerFactory.getLogger(UpdateAnnouncementService.class);
     private final DatabaseManager databaseManager;
 
     public UpdateAnnouncementService(DatabaseManager databaseManager) {
@@ -27,9 +30,10 @@ public class UpdateAnnouncementService {
 
                 session.persist(update);
                 tx.commit();
-            } catch (Exception e) {
+            } catch (Exception ex) {
                 if (tx != null) tx.rollback();
-                throw e;
+                logger.error(ex.fillInStackTrace().toString());
+                System.err.println(ex.getMessage());
             }
         }
     }
@@ -50,6 +54,11 @@ public class UpdateAnnouncementService {
             return session.createQuery(cq)
                     .setMaxResults(limit)
                     .getResultList();
+
+        } catch (Exception ex) {
+            logger.error(ex.fillInStackTrace().toString());
+            System.err.println(ex.getMessage());
+            return List.of();
         }
     }
 }

@@ -97,7 +97,8 @@ public class ActiveGameService {
     }
 
     // Record the guess only if they haven't guessed yet
-    public void recordGuessAttempt(String guildId, String memberId, int roundNumber, ActiveGameEntity game) {
+    public void recordGuessAttempt(String guildId, String memberId, String memberNickname,
+                                   int roundNumber, ActiveGameEntity game) {
         try (Session session = databaseManager.getSessionFactory().openSession()) {
             Transaction tx = session.beginTransaction();
             ActiveGuessEntity guess = new ActiveGuessEntity();
@@ -105,6 +106,7 @@ public class ActiveGameService {
             guess.setMemberId(memberId);
             guess.setRoundNumber(roundNumber);
             guess.setActiveGame(game);
+            guess.setMemberNickname(memberNickname);
             session.persist(guess);
             tx.commit();
         } catch (Exception ex) {
@@ -196,6 +198,10 @@ public class ActiveGameService {
             );
 
             return session.createQuery(cq).getSingleResult() > 0;
+        } catch (Exception ex) {
+            logger.error(ex.fillInStackTrace().toString());
+            System.err.println(ex.getMessage());
+            return false;
         }
     }
 }

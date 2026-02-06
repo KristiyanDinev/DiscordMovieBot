@@ -1,8 +1,11 @@
 package me.kristiyan.moviebot.database.entities.movie;
 
+import jakarta.persistence.Embeddable;
+
 import java.io.Serializable;
 import java.util.Objects;
 
+@Embeddable
 public class MovieCategoryKey implements Serializable {
     private int movieId; // Must match the name of the field in Entity
     private String category;
@@ -12,6 +15,12 @@ public class MovieCategoryKey implements Serializable {
         this.movieId = movieId;
         this.category = category;
     }
+
+    // Getters are required for JPA to access the fields
+    public int getMovieId() { return movieId; }
+    public void setMovieId(int movieId) { this.movieId = movieId; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     @Override
     public boolean equals(Object o) {

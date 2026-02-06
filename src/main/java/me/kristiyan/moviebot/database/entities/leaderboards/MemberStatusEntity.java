@@ -9,7 +9,7 @@ import jakarta.persistence.*;
 public class MemberStatusEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(name = "guild_id",  nullable = false)
     private String guildId;

@@ -5,6 +5,7 @@ services:
     image: postgres:18.1
     container_name: moviebot-postgres-test
     restart: unless-stopped
+    command: -c "app.user=moviebot_user" -c "app.password=${POSTGRES_DB_PASSWORD}"
     environment:
       POSTGRES_DB: ${POSTGRES_DB_NAME}
       POSTGRES_USER: ${POSTGRES_DB_ROOT_USER}
@@ -12,16 +13,30 @@ services:
     volumes:
       - moviebot-postgres-data-test:/var/lib/postgresql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - discordbots
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d "+${POSTGRES_DB_NAME} ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_DB_ROOT_USER} -d ${POSTGRES_DB_NAME}"]
       interval: 3s
       timeout: 5s
       retries: 10           # give it ~30s max to become ready
       start_period: 5s
-    # ports:   # uncomment only if you need host access
-    #   - "5432:5432"
 
-  bot:
+  pgAdmin:
+    image: dpage/pgadmin4
+    container_name: moviebot-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    networks:
+      - discordbots
+
+  bot-test:
     image: discordmoviebot:2.0.0
     container_name: discord-movie-bot-test
     restart: unless-stopped
@@ -32,11 +47,21 @@ services:
       POSTGRES_DB_PORT: "5432"
       POSTGRES_DB_USERNAME: 'moviebot_user' # ${POSTGRES_DB_USERNAME}
       POSTGRES_DB_PASSWORD: ${POSTGRES_DB_PASSWORD}
-      DISCORD_MOVIE_BOT_TOKEN: ${DISCORD_MOVIE_BOT_TOKEN_TEST}
+      DISCORD_MOVIE_BOT_TOKEN: ${TESTING_DISCORD_BOT_TOKEN}
+      REPORT_GUILD_ID: "1466675456127533107"
+      REPORT_CHANNEL_ID: "1469215922144415754"
+    volumes:
+      - ./bot_logs:/app/logs
+    networks:
+      - discordbots
     depends_on:
       postgres-test:
         condition: service_healthy
 
+networks:
+  discordbots:
+
 volumes:
+  pgadmin-data:
   moviebot-postgres-data-test:
     name: moviebot-postgres-data-test
