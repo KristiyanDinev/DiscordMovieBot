@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'me.kristiyan.moviebot'
-version = '2.0.0'
+version = '2.0.1'
 
 repositories {
     mavenCentral()
@@ -50,7 +50,7 @@ jar {
 shadowJar {
     archiveBaseName.set('DiscordMovieBotShadowJar')
     archiveClassifier.set('')
-    archiveVersion.set('2.0.0')
+    archiveVersion.set('2.0.1')
     mergeServiceFiles()
 }
 

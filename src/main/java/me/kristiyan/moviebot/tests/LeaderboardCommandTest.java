@@ -33,6 +33,8 @@ public class LeaderboardCommandTest {
         // Scenario 3: Empty State Handling
         testEmptyLeaderboard();
 
+        testGuildAggregation();
+
         System.out.println("--- ✅ LEADERBOARD COMMAND LOGIC COMPLETE ---");
     }
 
@@ -80,6 +82,37 @@ public class LeaderboardCommandTest {
                 .getMemberLeaderboard("G_EMPTY", 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
 
         System.out.println("    - Empty Check: " + (emptyBoard.isEmpty() ? "PASSED" : "FAILED"));
+    }
+
+    private void testGuildAggregation() {
+        System.out.println("[4] Testing Guild Score Aggregation (No Duplicates)...");
+        String guildId = "AGG_GUILD_1";
+        String guildName = "United Movie Fans";
+
+        // Setup: Two different users in the SAME guild with different scores
+        // User A gets 10 points, User B gets 20 points. Total should be 30.
+        createScore(guildId, guildName, "User_A", 10);
+        createScore(guildId, guildName, "User_B", 20);
+
+        List<MemberStatusEntity> board = services.getLeaderboardsService()
+                .getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
+
+        // Filter for our specific guild in the global list
+        List<MemberStatusEntity> guildEntries = board.stream()
+                .filter(e -> e.getGuildId().equals(guildId))
+                .toList();
+
+        // Verification 1: The guild should only appear ONCE
+        boolean isUnique = guildEntries.size() == 1;
+
+        // Verification 2: The score should be the SUM (10 + 20 = 30)
+        int totalScore = isUnique ? guildEntries.getFirst().getCorrectGuesses() : 0;
+
+        if (isUnique && totalScore == 30) {
+            System.out.println("    - PASSED: Guild aggregated to 1 entry with total score 30.");
+        } else {
+            System.out.println("    - FAILED: " + (isUnique ? "Incorrect sum: " + totalScore : "Duplicate guild entries found!"));
+        }
     }
 
     /**

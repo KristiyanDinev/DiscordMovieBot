@@ -1,5 +1,6 @@
 package me.kristiyan.moviebot.services;
 
+import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
@@ -99,27 +100,38 @@ public class LeaderboardsService {
     public List<MemberStatusEntity> getGuildLeaderboard(LeaderboardMemberStatus leaderboardMemberStatus, int limit) {
         try (Session session = databaseManager.getSessionFactory().openSession()) {
             CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaQuery<MemberStatusEntity> mainQuery = cb.createQuery(MemberStatusEntity.class);
-            Root<MemberStatusEntity> root = mainQuery.from(MemberStatusEntity.class);
 
-            jakarta.persistence.criteria.Subquery<Integer> sub = mainQuery.subquery(Integer.class);
-            Root<MemberStatusEntity> subRoot = sub.from(MemberStatusEntity.class);
-            sub.select(cb.max(subRoot.get("correctGuesses")))
-                    .where(cb.equal(subRoot.get("statusType"), leaderboardMemberStatus.toString()))
-                    .groupBy(subRoot.get("guildId"));
+            // Use Tuple to handle multiple selection in a type-safe way
+            CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+            Root<MemberStatusEntity> root = cq.from(MemberStatusEntity.class);
 
-            mainQuery.select(root)
-                    .where(
-                            cb.equal(root.get("statusType"), leaderboardMemberStatus.toString()),
-                            root.get("correctGuesses").in(sub)
-                    )
-                    .orderBy(cb.desc(root.get("correctGuesses")));
+            // Define the selection using an array-like structure via tuple()
+            cq.select(cb.tuple(
+                    root.get("guildId").alias("id"),
+                    root.get("guildName").alias("name"),
+                    cb.sum(root.get("correctGuesses")).alias("total")
+            ));
 
-            return session.createQuery(mainQuery).setMaxResults(limit).getResultList();
+            cq.where(cb.equal(root.get("statusType"), leaderboardMemberStatus.toString()));
+            cq.groupBy(root.get("guildId"), root.get("guildName"));
+            cq.orderBy(cb.desc(cb.sum(root.get("correctGuesses"))));
+
+
+            return session.createQuery(cq)
+                    .setMaxResults(limit)
+                    .getResultList().stream().map(tuple -> {
+                MemberStatusEntity entity = new MemberStatusEntity();
+                entity.setGuildId(tuple.get("id", String.class));
+                entity.setGuildName(tuple.get("name", String.class));
+                // Safely handle the Sum result (usually returns Long or Number)
+                Number sum = tuple.get("total", Number.class);
+                entity.setCorrectGuesses(sum != null ? sum.intValue() : 0);
+                entity.setStatusType(leaderboardMemberStatus.toString());
+                return entity;
+            }).collect(Collectors.toList());
 
         } catch (Exception ex) {
-            logger.error(ex.fillInStackTrace().toString());
-            System.err.println(ex.getMessage());
+            logger.error("Error fetching guild leaderboard: ", ex);
             return List.of();
         }
     }

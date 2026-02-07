@@ -37,7 +37,7 @@ services:
       - discordbots
 
   bot:
-    image: discordmoviebot:2.0.0
+    image: discordmoviebot:2.0.1
     container_name: discord-movie-bot
     restart: unless-stopped
     environment:
