@@ -10,7 +10,7 @@ public class CommandListener extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         Guild guild = event.getGuild();
-        if (guild == null) {
+        if (guild == null || guild.isDetached()) {
             return;
         }
         String guildId = guild.getId();
