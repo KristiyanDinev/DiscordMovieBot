@@ -73,14 +73,16 @@ public class GuessCommand {
                 if (activeGame.isHighStakes()) description += "\n\nOne guess only!";
 
                 String finalDesc = description;
-                event.replyEmbeds(embed.build()).queue(s ->
+                event.replyEmbeds(embed.build()).queue(s -> {
+                    try {
                         event.getChannel().sendMessageEmbeds(new EmbedBuilder()
                                 .setTitle("🎬 Next Round!")
                                 .setDescription(finalDesc)
                                 .setColor(Color.BLUE)
                                 .setImage(nextMovie.getGifUrl())
-                                .setFooter("Good luck! 🍿").build()).queue()
-                );
+                                .setFooter("Good luck! 🍿").build()).queue();
+                    } catch (Exception ignored) {}
+                });
             }
         } else {
             // WRONG GUESS
