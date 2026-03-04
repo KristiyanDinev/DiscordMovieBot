@@ -125,12 +125,23 @@ The following are **optional** and they default to some value if they are not se
 - `HIBERNATE_ORDER_UPDATES` = true
 
 ```bash
-docker build --build-args BOT_VERSION=1.0.0 -t discordmoviebot:1.0.0 .
+docker build --build-arg BOT_VERSION=1.0.0 -t discordmoviebot:1.0.0 .
 docker compose up -d
 ```
 
+Or to upload it to your own docker registry
+```bash
+docker build -t <registry-address>:5000/moviebot:1.0.0 .
+
+# or if you have this image already as a local image
+# docker tag moviebot:2.0.3 <registry-address>:5000/moviebot:1.0.0
+
+docker login <registry-address>:5000
+docker push <registry-address>:5000/moviebot:2.0.3
+```
 Then you will get an error, which says that you can't connect.
-Go to your postgres database and run all the commands from `init.sql`
+Go
+ to your postgres database and run all the commands from `init.sql`
 Then restart only the discord bot container and you should be good to go.
 
 ### Step 4: Play!
@@ -160,6 +171,104 @@ Examples:
 - ✅ Accepts: "lord of the rings", "lord rings", "Lord of Rings"
 - ❌ Rejects: "harry potter", "star wars"
 
+## Visualise Bot's Usage
+
+In your pgAdmin dashboard. Got to **File -> Preferences -> Graphs -> Display**
+and sure you have enabled it.
+
+
+Then start a session and execute the queries you like:
+
+The date follows this pattern: **YYYY-MM-DD**
+
+### Get the usage of a single command during that day
+
+- Make sure to replace `/start` with whatever command you like
+
+```sql
+WITH TargetDate AS (
+    SELECT '2026-03-20'::date AS d -- Input your date here
+),
+Hours AS (
+    -- Generates all 24 hours for the chosen day
+    SELECT generate_series((SELECT d FROM TargetDate)::timestamp, 
+                           (SELECT d FROM TargetDate)::timestamp + interval '23 hours', 
+                           interval '1 hour') AS hour
+)
+SELECT 
+    h.hour,
+    'start_command' AS activity_source,
+    COUNT(b.id) AS usage_count
+FROM Hours h
+LEFT JOIN bot_usage b ON date_trunc('hour', b.used_at) = h.hour 
+                      AND b.command = '/start'
+GROUP BY 1
+ORDER BY h.hour ASC;
+```
+
+
+## Displays which guilds have been the most active during that day
+
+
+```sql
+WITH Target AS (
+    SELECT '2026-03-04'::date AS d -- Change date here
+),
+Top10 AS (
+    SELECT guildid 
+    FROM bot_usage, Target
+    WHERE used_at::date = d
+    GROUP BY guildid 
+    ORDER BY COUNT(*) DESC 
+    LIMIT 10
+),
+OtherStats AS (
+    SELECT COUNT(DISTINCT guildid) as total_others
+    FROM bot_usage, Target
+    WHERE used_at::date = d
+    AND guildid NOT IN (SELECT guildid FROM Top10)
+),
+LabeledData AS (
+    -- Pre-label everything so GROUP BY doesn't complain about guildid
+    SELECT 
+        date_trunc('hour', used_at) AS hour,
+        CASE 
+            WHEN guildid IN (SELECT guildid FROM Top10) THEN guildname
+            ELSE 'Others'
+        END AS activity_source
+    FROM bot_usage, Target
+    WHERE used_at::date = d
+)
+SELECT 
+    hour,
+    CASE 
+        WHEN activity_source = 'Others' 
+        THEN 'Others (' || (SELECT total_others FROM OtherStats) || ' guilds)'
+        ELSE activity_source 
+    END AS activity_source,
+    CASE 
+        WHEN activity_source = 'Others' 
+        THEN ROUND(COUNT(*)::numeric / NULLIF((SELECT total_others FROM OtherStats), 0), 2)
+        ELSE COUNT(*)
+    END AS usage_count
+FROM LabeledData
+GROUP BY hour, activity_source
+ORDER BY hour ASC;
+```
+
+
+After running the queries you should see some data if someone actually ran a command.
+
+On the **Data Output** tab. There should be another tab called **Graph Visualizer**. Click it.
+
+### Select:
+- **Graph Type**: Stacked Line Chart
+- **X**: hour
+- **Y**: usage_count
+
+
+Then click on generate and it should show up a graph.
+
 ## License
 
 This project is provided as-is for educational purposes.
@@ -171,3 +280,8 @@ For issues or questions, please create an issue in the project repository.
 ---
 
 Made with ❤️ for movie lovers and Discord communities! 🎬🍿
+
+
+## TODO
+- Mortal Kombat II 
+- Toy story 5

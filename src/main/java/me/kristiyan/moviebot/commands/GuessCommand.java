@@ -7,6 +7,7 @@ import me.kristiyan.moviebot.services.ServiceManager;
 import me.kristiyan.moviebot.utils.MovieMatcher;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
@@ -36,6 +37,9 @@ public class GuessCommand {
         MovieEntity movie = activeGame.getMovie();
         String type = movie.getContentType();
         String title = movie.getTitle();
+        MessageChannelUnion channel = event.getChannel();
+        event.reply("Calculating your guess...")
+                .setEphemeral(true).queue();
 
         if (MovieMatcher.isMatch(guess, title)) {
             // Record attempt
@@ -62,7 +66,7 @@ public class GuessCommand {
                 // Pass the SPECIFIC game entity to end it
                 serviceManager.getActiveGameService().endGame(activeGame);
 
-                event.replyEmbeds(embed.build()).queue();
+                channel.sendMessageEmbeds(embed.build()).queue();
             } else {
                 activeGame.setCurrentRound(nextRound);
                 MovieEntity nextMovie = serviceManager.getMovieService().getRandomMovie(type);
@@ -73,16 +77,13 @@ public class GuessCommand {
                 if (activeGame.isHighStakes()) description += "\n\nOne guess only!";
 
                 String finalDesc = description;
-                event.replyEmbeds(embed.build()).queue(s -> {
-                    try {
-                        event.getChannel().sendMessageEmbeds(new EmbedBuilder()
-                                .setTitle("🎬 Next Round!")
-                                .setDescription(finalDesc)
-                                .setColor(Color.BLUE)
-                                .setImage(nextMovie.getGifUrl())
-                                .setFooter("Good luck! 🍿").build()).queue();
-                    } catch (Exception ignored) {}
-                });
+                channel.sendMessageEmbeds(embed.build()).queue();
+                channel.sendMessageEmbeds(new EmbedBuilder()
+                        .setTitle("🎬 Next Round!")
+                        .setDescription(finalDesc)
+                        .setColor(Color.BLUE)
+                        .setImage(nextMovie.getGifUrl())
+                        .setFooter("Good luck! 🍿").build()).queue();
             }
         } else {
             // WRONG GUESS
@@ -94,7 +95,7 @@ public class GuessCommand {
 
             serviceManager.getActiveGameService().endGame(activeGame);
 
-            event.replyEmbeds(new EmbedBuilder()
+            channel.sendMessageEmbeds(new EmbedBuilder()
                     .setColor(Color.RED)
                     .setTitle("❌ Wrong!")
                     .setDescription("**" + member.getEffectiveName() + "** guessed incorrectly!")

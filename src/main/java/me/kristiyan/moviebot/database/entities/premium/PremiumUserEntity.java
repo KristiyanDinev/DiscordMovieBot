@@ -20,9 +20,6 @@ public class PremiumUserEntity {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
-    @Column(name = "activation_code", length = 20)
-    private String activationCode;
-
     @PrePersist
     protected void onCreate() {
         if (activatedAt == null) {
@@ -37,12 +34,6 @@ public class PremiumUserEntity {
     public PremiumUserEntity(String userId, LocalDateTime expiresAt) {
         this.userId = userId;
         this.expiresAt = expiresAt;
-    }
-
-    public PremiumUserEntity(String userId, LocalDateTime expiresAt, String activationCode) {
-        this.userId = userId;
-        this.expiresAt = expiresAt;
-        this.activationCode = activationCode;
     }
 
     // Getters and Setters
@@ -70,13 +61,6 @@ public class PremiumUserEntity {
         this.expiresAt = expiresAt;
     }
 
-    public String getActivationCode() {
-        return activationCode;
-    }
-
-    public void setActivationCode(String activationCode) {
-        this.activationCode = activationCode;
-    }
 
     public boolean isActive() {
         return expiresAt.isAfter(LocalDateTime.now());

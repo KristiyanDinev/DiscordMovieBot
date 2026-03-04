@@ -9,6 +9,7 @@ public class ServiceManager {
     private final PremiumService premiumService;
     private final UpdateAnnouncementService updateAnnouncementService;
     private final MovieReportService movieReportService;
+    private final BotUsageService botUsageService;
 
     public ServiceManager(DatabaseManager databaseManager) {
         activeGameService = new ActiveGameService(databaseManager);
@@ -17,6 +18,7 @@ public class ServiceManager {
         premiumService = new PremiumService(databaseManager);
         updateAnnouncementService = new UpdateAnnouncementService(databaseManager);
         movieReportService = new MovieReportService(databaseManager);
+        botUsageService = new BotUsageService(databaseManager);
     }
 
     public ActiveGameService getActiveGameService() {
@@ -41,5 +43,9 @@ public class ServiceManager {
 
     public MovieReportService getMovieReportService() {
         return movieReportService;
+    }
+
+    public BotUsageService getBotUsageService() {
+        return botUsageService;
     }
 }

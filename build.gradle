@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'me.kristiyan.moviebot'
-version = '2.0.3'
+version = '2.1.3'
 
 repositories {
     mavenCentral()
@@ -38,7 +38,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'Main'
+    mainClass = 'me.kristiyan.moviebot.Main'
 }
 
 jar {
@@ -50,7 +50,7 @@ jar {
 shadowJar {
     archiveBaseName.set('DiscordMovieBotShadowJar')
     archiveClassifier.set('')
-    archiveVersion.set('2.0.3')
+    archiveVersion.set('2.1.3')
     mergeServiceFiles()
 }
 

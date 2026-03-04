@@ -65,6 +65,7 @@ public class Main {
                     Commands.slash("leaderboard", "Show the server and member leaderboards"),
                     Commands.slash("skip", "Skip the current movie and start a new round (reveals the answer)"),
                     Commands.slash("help", "Displays the help menu"),
+                    Commands.slash("ping", "Displays the latency of the bot"),
                     Commands.slash("updates", "See what's new in the latest version"),
                     Commands.slash("report", "Report an inaccurate movie for your current game")
                             .addOption(OptionType.STRING, "reason",

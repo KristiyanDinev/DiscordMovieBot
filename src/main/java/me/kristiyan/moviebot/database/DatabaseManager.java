@@ -5,18 +5,17 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
-import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import me.kristiyan.moviebot.database.entities.activity.BotUsageEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGuessEntity;
 import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieCategoryEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
-import me.kristiyan.moviebot.database.entities.premium.PremiumCodeEntity;
 import me.kristiyan.moviebot.database.entities.premium.PremiumUserEntity;
 import me.kristiyan.moviebot.database.entities.reports.MovieReportEntity;
 import me.kristiyan.moviebot.database.entities.updates.UpdateAnnouncementEntity;
@@ -103,11 +102,12 @@ public class DatabaseManager {
             configuration.addAnnotatedClass(MovieCategoryEntity.class);
 
             configuration.addAnnotatedClass(PremiumUserEntity.class);
-            configuration.addAnnotatedClass(PremiumCodeEntity.class);
 
             configuration.addAnnotatedClass(UpdateAnnouncementEntity.class);
 
             configuration.addAnnotatedClass(MovieReportEntity.class);
+
+            configuration.addAnnotatedClass(BotUsageEntity.class);
 
             sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder()
                     // Add standard properties

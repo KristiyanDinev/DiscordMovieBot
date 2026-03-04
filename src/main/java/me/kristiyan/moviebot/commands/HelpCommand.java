@@ -12,13 +12,11 @@ public class HelpCommand {
                 .setDescription("Test your cinema knowledge! I'll show you a scene, and you guess the movie or anime title.")
                 .setColor(new Color(245, 197, 24))
                 .setThumbnail(event.getJDA().getSelfUser().getEffectiveAvatarUrl())
-
                 .addField("🎮 How to Play",
                         "1. **Start:** Use `/start` to begin a match.\n" +
                                 "2. **Watch:** Scene will appear in the channel.\n" +
                                 "3. **Solve:** Use `/guess <title>` to give your answer!",
                         false)
-
                 .addField("👥 Social vs. 👤 Solo",
                         "• **Community Mode:** By default, **anyone** in the server can join the fun and guess!\n" +
                                 "• **Solo Mode:** Want to test your own skills? Use the `solo` option in `/start` to lock the game to yourself.",
@@ -34,9 +32,12 @@ public class HelpCommand {
                                 "`/skip` • Give up and see the answer\n" +
                                 "`/leaderboard` • Compare your rank globally and locally\n" +
                                 "`/updates` • See what's new in the latest version\n" +
-                                "`/report [reason]` • Report an inaccurate movie for your current game\n",
+                                "`/report [reason]` • Report an inaccurate movie for your current game\n" +
+                                "`/ping` • Displays the latency of the bot\n",
                         false)
-
+                .addField("Notes:",
+                        "In case the bot doesn't respond after using the command. Please check `/ping` or make sure the bot has **View Channel** permissions",
+                        false)
                 .setFooter("\uD83C\uDF7F Popcorn ready? Good luck!").build()).queue();
     }
 }

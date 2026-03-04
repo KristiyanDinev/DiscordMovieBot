@@ -1,11 +1,11 @@
 [versions]
-jda = "6.3.0"
+jda = "6.3.1"
 slf4j = "2.0.17"
-postgres = "42.7.9"
+postgres = "42.7.10"
 hikaricp = "7.0.2"
 jpa = "4.0.0-M1"
-hibernate = "7.2.3.Final"
-logback = "1.5.27"
+hibernate = "7.2.5.Final"
+logback = "1.5.32"
 
 [libraries]
 jda = { group = "net.dv8tion", name = "JDA", version.ref = "jda" }
