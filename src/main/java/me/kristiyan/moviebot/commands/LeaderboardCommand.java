@@ -2,6 +2,7 @@ package me.kristiyan.moviebot.commands;
 
 import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
 import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
+import me.kristiyan.moviebot.enums.LeaderboardTypeEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -13,7 +14,8 @@ import java.util.function.Function;
 public class LeaderboardCommand {
 
     public static void handleLeaderboardCommand(SlashCommandInteractionEvent event,
-                                                String guildId, ServiceManager serviceManager) {
+                                                String guildId, ServiceManager serviceManager,
+                                                LeaderboardTypeEnum leaderboardTypeEnum) {
         EmbedBuilder embed = new EmbedBuilder()
                 .setTitle("🏆 Leaderboards")
                 .setColor(Color.ORANGE)
@@ -21,23 +23,52 @@ public class LeaderboardCommand {
 
         var lbService = serviceManager.getLeaderboardsService();
 
+        List<MemberStatusEntity> GuildTopGuessesHighStakes;
+        List<MemberStatusEntity> GuildTopGuesses;
+
+        List<MemberStatusEntity> MembersTopGuessesHighStakes;
+        List<MemberStatusEntity> MembersTopGuesses;
+
+        switch (leaderboardTypeEnum) {
+            case GLOBAL: {
+                GuildTopGuessesHighStakes =
+                        lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES, 10);
+                GuildTopGuesses = lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
+
+                MembersTopGuessesHighStakes =
+                        lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
+                MembersTopGuesses =
+                        lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES);
+                break;
+            }
+            case DAILY: {
+                GuildTopGuessesHighStakes =
+                        lbService.getDailyGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES, 10);
+                GuildTopGuesses = lbService.getDailyGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
+
+                MembersTopGuessesHighStakes =
+                        lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
+                MembersTopGuesses =
+                        lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES);
+            }
+            default: {
+                return;
+            }
+        }
+
         // 1. Global Server Leaderboards
         addLeaderboardField(embed, "🌍 Top Servers (High Stakes 🔥)",
-                lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES, 10),
-                MemberStatusEntity::getGuildName);
+                GuildTopGuessesHighStakes, MemberStatusEntity::getGuildName);
 
         addLeaderboardField(embed, "🌍 Top Servers",
-                lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10),
-                MemberStatusEntity::getGuildName);
+                GuildTopGuesses, MemberStatusEntity::getGuildName);
 
         // 2. Local Member Leaderboards
         addLeaderboardField(embed, "👥 Top Players (This Server) (High Stakes 🔥)",
-                lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES),
-                MemberStatusEntity::getMemberNickname);
+                MembersTopGuessesHighStakes, MemberStatusEntity::getMemberNickname);
 
         addLeaderboardField(embed, "👥 Top Players (This Server)",
-                lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES),
-                MemberStatusEntity::getMemberNickname);
+                MembersTopGuesses, MemberStatusEntity::getMemberNickname);
 
         event.replyEmbeds(embed.build()).queue();
     }

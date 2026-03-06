@@ -6,7 +6,10 @@ import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
 import me.kristiyan.moviebot.services.ServiceManager;
 import me.kristiyan.moviebot.utils.MovieMatcher;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -14,8 +17,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import java.awt.*;
 
 public class GuessCommand {
-    public static void handleGuessCommand(SlashCommandInteractionEvent event, String guildId,
-                                          String guildName, ServiceManager serviceManager) {
+    public static void handleGuessCommand(SlashCommandInteractionEvent event, Guild guild, ServiceManager serviceManager) {
         OptionMapping option = event.getOption("title");
         if (option == null) {
             event.reply("❌ Please provide a title!").setEphemeral(true).queue();
@@ -25,7 +27,8 @@ public class GuessCommand {
         Member member = event.getMember();
         if (member == null) return;
 
-        // INTELLIGENT LOOKUP: Finds private game if exists, otherwise public
+        String guildId = guild.getId();
+        String guildName = guild.getName();
         ActiveGameEntity activeGame = serviceManager.getActiveGameService().findRelevantGame(guildId, member.getId());
 
         if (activeGame == null) {
@@ -38,7 +41,16 @@ public class GuessCommand {
         String type = movie.getContentType();
         String title = movie.getTitle();
         MessageChannelUnion channel = event.getChannel();
-        event.reply("Calculating your guess...")
+        Member selfMember = guild.getSelfMember();
+
+        if (channel instanceof GuildChannel guildChannel) {
+            if (!selfMember.hasPermission(guildChannel, Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)) {
+                event.reply("❌ I don't have permission to see or chat in this channel!")
+                        .queue();
+                return;
+            }
+        }
+        event.reply("\uD83E\uDD14 Calculating your guess...")
                 .setEphemeral(true).queue();
 
         if (MovieMatcher.isMatch(guess, title)) {

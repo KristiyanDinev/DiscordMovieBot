@@ -62,7 +62,8 @@ public class Main {
                     Commands.slash("guess", "Guess the movie title")
                             .addOption(OptionType.STRING, "title", "Your guess for the movie title", true),
 
-                    Commands.slash("leaderboard", "Show the server and member leaderboards"),
+                    Commands.slash("leaderboard", "Show the server and member global leaderboards"),
+                    Commands.slash("leaderboard daily", "Show the server and member daily leaderboards"),
                     Commands.slash("skip", "Skip the current movie and start a new round (reveals the answer)"),
                     Commands.slash("help", "Displays the help menu"),
                     Commands.slash("ping", "Displays the latency of the bot"),

@@ -151,7 +151,9 @@ In your Discord server, try these commands:
 1. `/start` - Start a movie guessing game
 2. `/guess Inception` - Make your ONE guess
 3. `/leaderboard` - See who's winning
-4. `/skip` - Reveal the answer and get a new movie
+4. `/leaderboard daly` - See the daily guesses
+5. `/skip` - Reveal the answer and get a new movie
+6. `/ping` - Displays the bot's latency
 
 ## How It Works
 

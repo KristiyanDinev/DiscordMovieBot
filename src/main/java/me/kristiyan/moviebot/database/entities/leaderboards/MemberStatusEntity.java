@@ -2,9 +2,12 @@ package me.kristiyan.moviebot.database.entities.leaderboards;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "member_stats", indexes = {
-        @Index(name = "idx_member_leaderboard", columnList = "status_type, correct_guesses DESC, guild_id")
+        @Index(name = "idx_member_leaderboard", columnList = "status_type, correct_guesses DESC, guild_id"),
+        @Index(name = "idx_daily_guild_leaderboard", columnList = "guessed_at, status_type, guild_id")
 })
 public class MemberStatusEntity {
     @Id
@@ -29,6 +32,9 @@ public class MemberStatusEntity {
     @Column(name = "correct_guesses",  nullable = false)
     private int correctGuesses = 0;
 
+    @Column(name = "guessed_at", nullable = false)
+    private LocalDate guessedAt = LocalDate.now();
+
     // Getters & Setters
     public String getGuildId() { return guildId; }
     public void setGuildId(String guildId) { this.guildId = guildId; }
@@ -47,4 +53,7 @@ public class MemberStatusEntity {
 
     public String getGuildName() { return guildName; }
     public void setGuildName(String guildName) { this.guildName = guildName; }
+
+    public LocalDate getGuessedAt() { return guessedAt; }
+    public void setGuessedAt(LocalDate guessedAt) { this.guessedAt = guessedAt; }
 }

@@ -41,27 +41,67 @@ public class ActiveGameEntity {
     private LocalDateTime startedAt = LocalDateTime.now();
 
     // Getters & Setters
-    public String getGuildId() { return guildId; }
-    public void setGuildId(String guildId) { this.guildId = guildId; }
+    public String getGuildId() {
+        return guildId;
+    }
 
-    public MovieEntity getMovie() { return movie; }
-    public void setMovie(MovieEntity movie) { this.movie = movie; }
+    public void setGuildId(String guildId) {
+        this.guildId = guildId;
+    }
 
-    public int getCurrentRound() { return currentRound; }
-    public void setCurrentRound(int currentRound) { this.currentRound = currentRound; }
+    public MovieEntity getMovie() {
+        return movie;
+    }
 
-    public int getTotalRounds() { return totalRounds; }
-    public void setTotalRounds(int totalRounds) { this.totalRounds = totalRounds; }
+    public void setMovie(MovieEntity movie) {
+        this.movie = movie;
+    }
 
-    public LocalDateTime getStartedAt() { return startedAt; }
-    public void setStartedAt(LocalDateTime startedAt) { this.startedAt = startedAt; }
+    public int getCurrentRound() {
+        return currentRound;
+    }
 
-    public boolean isHighStakes() { return highStakes; }
-    public void setHighStake(boolean highStakes) { this.highStakes = highStakes; }
+    public void setCurrentRound(int currentRound) {
+        this.currentRound = currentRound;
+    }
 
-    public boolean isLocked() { return locked; }
-    public void setLocked(boolean locked) { this.locked = locked; }
+    public int getTotalRounds() {
+        return totalRounds;
+    }
 
-    public String getLockedMemberId() { return lockedMemberId; }
-    public void setLockedMemberId(String lockedMemberId) { this.lockedMemberId = lockedMemberId; }
+    public void setTotalRounds(int totalRounds) {
+        this.totalRounds = totalRounds;
+    }
+
+    public LocalDateTime getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(LocalDateTime startedAt) {
+        this.startedAt = startedAt;
+    }
+
+    public boolean isHighStakes() {
+        return highStakes;
+    }
+
+    public void setHighStake(boolean highStakes) {
+        this.highStakes = highStakes;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    public String getLockedMemberId() {
+        return lockedMemberId;
+    }
+
+    public void setLockedMemberId(String lockedMemberId) {
+        this.lockedMemberId = lockedMemberId;
+    }
 }

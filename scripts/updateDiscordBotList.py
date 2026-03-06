@@ -67,6 +67,10 @@ commands = [
         "description": "See what's new in the latest version"
     },
     {
+        "name": "ping",
+        "description": "Displays the latency of the bot"
+    },
+    {
         "name": "report",
         "description": "Report an inaccurate movie for your current game",
         "options": [

@@ -1,6 +1,7 @@
 package me.kristiyan.moviebot.commands;
 
 import me.kristiyan.moviebot.Main;
+import me.kristiyan.moviebot.enums.LeaderboardTypeEnum;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -22,8 +23,11 @@ public class CommandListener extends ListenerAdapter {
         switch (event.getName()) {
             case "help" -> HelpCommand.handleHelpCommand(event);
             case "start" -> StartCommand.handleStartCommand(event, guildId, Main.serviceManager);
-            case "guess" -> GuessCommand.handleGuessCommand(event, guildId, guildName, Main.serviceManager);
-            case "leaderboard" -> LeaderboardCommand.handleLeaderboardCommand(event, guildId, Main.serviceManager);
+            case "guess" -> GuessCommand.handleGuessCommand(event, guild, Main.serviceManager);
+            case "leaderboard" -> LeaderboardCommand.handleLeaderboardCommand(event, guildId,
+                    Main.serviceManager, LeaderboardTypeEnum.GLOBAL);
+            case "leaderboard daily" -> LeaderboardCommand.handleLeaderboardCommand(event, guildId,
+                    Main.serviceManager, LeaderboardTypeEnum.DAILY);
             case "skip" -> SkipCommand.handleSkipCommand(event, guildId, Main.serviceManager);
             case "updates" -> UpdatesCommand.handleUpdatesCommand(event, Main.serviceManager);
             case "report"  -> ReportCommand.handleReportCommand(event, guildId, Main.serviceManager);
