@@ -13,7 +13,8 @@ public class ActiveGameEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", nullable = false)
+    private long id;
 
     @Column(name = "guild_id", nullable = false)
     private String guildId;

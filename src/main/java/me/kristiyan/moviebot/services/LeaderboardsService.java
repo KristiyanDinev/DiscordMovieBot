@@ -81,7 +81,7 @@ public class LeaderboardsService {
                     entity.setMemberId(mId);
                     entity.setMemberNickname(idToNickname.getOrDefault(mId, "Unknown User"));
                     entity.setGuildName(guildName);
-                    entity.setStatusType(leaderboardMemberStatus.toString());
+                    entity.setStatusType(leaderboardMemberStatus);
                     entity.setCorrectGuesses(pointsToAdd);
                 } else {
                     entity.setCorrectGuesses(entity.getCorrectGuesses() + pointsToAdd);
@@ -126,7 +126,7 @@ public class LeaderboardsService {
                 // Safely handle the Sum result (usually returns Long or Number)
                 Number sum = tuple.get("total", Number.class);
                 entity.setCorrectGuesses(sum != null ? sum.intValue() : 0);
-                entity.setStatusType(leaderboardMemberStatus.toString());
+                entity.setStatusType(leaderboardMemberStatus);
                 return entity;
             }).collect(Collectors.toList());
 
@@ -227,7 +227,7 @@ public class LeaderboardsService {
 
                         Number sum = tuple.get("total", Number.class);
                         entity.setCorrectGuesses(sum != null ? sum.intValue() : 0);
-                        entity.setStatusType(status.toString());
+                        entity.setStatusType(status);
                         return entity;
                     }).collect(Collectors.toList());
 

@@ -26,7 +26,7 @@ public class CommandListener extends ListenerAdapter {
             case "guess" -> GuessCommand.handleGuessCommand(event, guild, Main.serviceManager);
             case "leaderboard" -> LeaderboardCommand.handleLeaderboardCommand(event, guildId,
                     Main.serviceManager, LeaderboardTypeEnum.GLOBAL);
-            case "leaderboard daily" -> LeaderboardCommand.handleLeaderboardCommand(event, guildId,
+            case "leaderboard-daily" -> LeaderboardCommand.handleLeaderboardCommand(event, guildId,
                     Main.serviceManager, LeaderboardTypeEnum.DAILY);
             case "skip" -> SkipCommand.handleSkipCommand(event, guildId, Main.serviceManager);
             case "updates" -> UpdatesCommand.handleUpdatesCommand(event, Main.serviceManager);

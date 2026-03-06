@@ -12,6 +12,7 @@ public class ActiveGuessEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private long id;
 
     @ManyToOne(fetch = FetchType.EAGER)

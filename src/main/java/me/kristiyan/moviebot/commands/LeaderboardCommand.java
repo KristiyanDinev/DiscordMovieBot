@@ -16,8 +16,10 @@ public class LeaderboardCommand {
     public static void handleLeaderboardCommand(SlashCommandInteractionEvent event,
                                                 String guildId, ServiceManager serviceManager,
                                                 LeaderboardTypeEnum leaderboardTypeEnum) {
+        String leaderboardTypeEnumName = leaderboardTypeEnum.toString();
         EmbedBuilder embed = new EmbedBuilder()
-                .setTitle("🏆 Leaderboards")
+                .setTitle("🏆 "+leaderboardTypeEnumName.charAt(0) +
+                        leaderboardTypeEnumName.toLowerCase().substring(1)+" Leaderboards")
                 .setColor(Color.ORANGE)
                 .setFooter("Keep playing to climb the leaderboard! 🎬");
 
@@ -50,6 +52,7 @@ public class LeaderboardCommand {
                         lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
                 MembersTopGuesses =
                         lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES);
+                break;
             }
             default: {
                 return;

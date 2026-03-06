@@ -2,6 +2,7 @@ package me.kristiyan.moviebot;
 
 import me.kristiyan.moviebot.commands.CommandListener;
 import me.kristiyan.moviebot.database.DatabaseManager;
+import me.kristiyan.moviebot.services.ActiveGameService;
 import me.kristiyan.moviebot.services.ServiceManager;
 import me.kristiyan.moviebot.tests.TestMain;
 import net.dv8tion.jda.api.JDA;
@@ -10,8 +11,11 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
     public static ServiceManager serviceManager;
 
     public static void main(String[] args) {
@@ -63,7 +67,7 @@ public class Main {
                             .addOption(OptionType.STRING, "title", "Your guess for the movie title", true),
 
                     Commands.slash("leaderboard", "Show the server and member global leaderboards"),
-                    Commands.slash("leaderboard daily", "Show the server and member daily leaderboards"),
+                    Commands.slash("leaderboard-daily", "Show the server and member daily leaderboards"),
                     Commands.slash("skip", "Skip the current movie and start a new round (reveals the answer)"),
                     Commands.slash("help", "Displays the help menu"),
                     Commands.slash("ping", "Displays the latency of the bot"),
@@ -73,12 +77,11 @@ public class Main {
                                     "The is the reason of your report? How was the movie inaccurate?",
                                     true)
             ).queue();
-
             System.out.println(jda.getSelfUser().getName()+" is ready!");
 
         } catch (Exception e) {
             System.err.println("Failed to start bot: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error fetching daily guild leaderboard: ", e);
         }
     }
 }

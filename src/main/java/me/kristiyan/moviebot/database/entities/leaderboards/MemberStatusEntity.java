@@ -1,6 +1,7 @@
 package me.kristiyan.moviebot.database.entities.leaderboards;
 
 import jakarta.persistence.*;
+import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
 
 import java.time.LocalDate;
 
@@ -27,12 +28,12 @@ public class MemberStatusEntity {
     private String memberNickname;
 
     @Column(name = "status_type", length = 30, nullable = false)
-    private String statusType;
+    private LeaderboardMemberStatus statusType;
 
     @Column(name = "correct_guesses",  nullable = false)
     private int correctGuesses = 0;
 
-    @Column(name = "guessed_at", nullable = false)
+    @Column(name = "guessed_at")
     private LocalDate guessedAt = LocalDate.now();
 
     // Getters & Setters
@@ -45,8 +46,8 @@ public class MemberStatusEntity {
     public String getMemberNickname() { return memberNickname; }
     public void setMemberNickname(String memberNickname) { this.memberNickname = memberNickname; }
 
-    public String getStatusType() { return statusType; }
-    public void setStatusType(String statType) { this.statusType = statType; }
+    public LeaderboardMemberStatus getStatusType() { return statusType; }
+    public void setStatusType(LeaderboardMemberStatus statType) { this.statusType = statType; }
 
     public int getCorrectGuesses() { return correctGuesses; }
     public void setCorrectGuesses(int correctGuesses) { this.correctGuesses = correctGuesses; }

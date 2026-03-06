@@ -8,8 +8,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "bot_usage")
 public class BotUsageEntity {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     private UUID id;
 
