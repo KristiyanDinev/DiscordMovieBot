@@ -1,9 +1,10 @@
 package me.kristiyan.moviebot.tests;
 
 import me.kristiyan.moviebot.database.DatabaseManager;
+import me.kristiyan.moviebot.database.dto.GuildLeaderboardDTO;
+import me.kristiyan.moviebot.database.dto.MemberLeaderboardDTO;
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGuessEntity;
-import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
 import me.kristiyan.moviebot.services.ServiceManager;
@@ -46,12 +47,12 @@ public class LeaderboardCommandTest {
         createScore(guildId, "Server One", "User_Alpha", 50);
         createScore(guildId, "Server One", "User_Beta", 100);
 
-        List<MemberStatusEntity> board = services.getLeaderboardsService()
+        List<MemberLeaderboardDTO> board = services.getLeaderboardsService()
                 .getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES);
 
         // Verification
-        if (!board.isEmpty() && board.getFirst().getMemberNickname().equals("User_Beta")) {
-            System.out.println("    - PASSED: User_Beta is #1 with " + board.getFirst().getCorrectGuesses() + " points.");
+        if (!board.isEmpty() && board.getFirst().getNickname().equals("User_Beta")) {
+            System.out.println("    - PASSED: User_Beta is #1 with " + board.getFirst().getTotalCorrectGuesses() + " points.");
         } else {
             System.out.println("    - FAILED: Ranking order is incorrect.");
         }
@@ -64,7 +65,7 @@ public class LeaderboardCommandTest {
         createScore("G1", "Top Guild", "Leader1", 500);
         createScore("G2", "Noob Guild", "Leader2", 10);
 
-        List<MemberStatusEntity> board = services.getLeaderboardsService()
+        List<GuildLeaderboardDTO> board = services.getLeaderboardsService()
                 .getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
 
         // Verification
@@ -78,7 +79,7 @@ public class LeaderboardCommandTest {
 
     private void testEmptyLeaderboard() {
         System.out.println("[3] Testing Empty State...");
-        List<MemberStatusEntity> emptyBoard = services.getLeaderboardsService()
+        List<MemberLeaderboardDTO> emptyBoard = services.getLeaderboardsService()
                 .getMemberLeaderboard("G_EMPTY", 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
 
         System.out.println("    - Empty Check: " + (emptyBoard.isEmpty() ? "PASSED" : "FAILED"));
@@ -94,11 +95,11 @@ public class LeaderboardCommandTest {
         createScore(guildId, guildName, "User_A", 10);
         createScore(guildId, guildName, "User_B", 20);
 
-        List<MemberStatusEntity> board = services.getLeaderboardsService()
+        List<GuildLeaderboardDTO> board = services.getLeaderboardsService()
                 .getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
 
         // Filter for our specific guild in the global list
-        List<MemberStatusEntity> guildEntries = board.stream()
+        List<GuildLeaderboardDTO> guildEntries = board.stream()
                 .filter(e -> e.getGuildId().equals(guildId))
                 .toList();
 
@@ -106,7 +107,7 @@ public class LeaderboardCommandTest {
         boolean isUnique = guildEntries.size() == 1;
 
         // Verification 2: The score should be the SUM (10 + 20 = 30)
-        int totalScore = isUnique ? guildEntries.getFirst().getCorrectGuesses() : 0;
+        int totalScore = isUnique ? guildEntries.getFirst().getTotalCorrectGuesses() : 0;
 
         if (isUnique && totalScore == 30) {
             System.out.println("    - PASSED: Guild aggregated to 1 entry with total score 30.");

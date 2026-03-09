@@ -6,54 +6,60 @@ import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "member_stats", indexes = {
-        @Index(name = "idx_member_leaderboard", columnList = "status_type, correct_guesses DESC, guild_id"),
-        @Index(name = "idx_daily_guild_leaderboard", columnList = "guessed_at, status_type, guild_id")
-})
+@Table(name = "new_member_stats",
+        indexes = {
+                // For leaderboard queries by guild and status
+                @Index(name = "idx_leaderboard", columnList = "guild_member_id, status_type, correct_guesses DESC"),
+
+                // For daily/time-based queries
+                @Index(name = "idx_daily_stats", columnList = "guessed_at, status_type"),
+
+                // For member-specific queries across all guilds
+                @Index(name = "idx_status_date", columnList = "status_type, guessed_at")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_member_status_date",
+                        columnNames = {"guild_member_id", "status_type", "guessed_at"}
+                )
+        }
+)
 public class MemberStatusEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
-    @Column(name = "guild_id",  nullable = false)
-    private String guildId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "guild_member_id", nullable = false)
+    private GuildMemberEntity guildMember;
 
-    @Column(name = "guild_name",  nullable = false)
-    private String guildName;
-
-    @Column(name = "member_id", nullable = false)
-    private String memberId;
-
-    @Column(name = "member_nickname", nullable = false)
-    private String memberNickname;
-
-    @Column(name = "status_type", length = 30, nullable = false)
+    @Column(name = "status_type", nullable = false)
+    @Enumerated(EnumType.ORDINAL)
     private LeaderboardMemberStatus statusType;
 
-    @Column(name = "correct_guesses",  nullable = false)
+    @Column(name = "correct_guesses", nullable = false)
     private int correctGuesses = 0;
 
-    @Column(name = "guessed_at")
-    private LocalDate guessedAt = LocalDate.now();
+    @Column(name = "guessed_at", nullable = false)
+    private LocalDate guessedAt;
+
+    // Constructor
+    public MemberStatusEntity() {
+        this.guessedAt = LocalDate.now();
+    }
 
     // Getters & Setters
-    public String getGuildId() { return guildId; }
-    public void setGuildId(String guildId) { this.guildId = guildId; }
+    public Long getId() { return id; }
 
-    public String getMemberId() { return memberId; }
-    public void setMemberId(String memberId) { this.memberId = memberId; }
-
-    public String getMemberNickname() { return memberNickname; }
-    public void setMemberNickname(String memberNickname) { this.memberNickname = memberNickname; }
+    public GuildMemberEntity getGuildMember() { return guildMember; }
+    public void setGuildMember(GuildMemberEntity guildMember) { this.guildMember = guildMember; }
 
     public LeaderboardMemberStatus getStatusType() { return statusType; }
-    public void setStatusType(LeaderboardMemberStatus statType) { this.statusType = statType; }
+    public void setStatusType(LeaderboardMemberStatus statusType) { this.statusType = statusType; }
 
     public int getCorrectGuesses() { return correctGuesses; }
     public void setCorrectGuesses(int correctGuesses) { this.correctGuesses = correctGuesses; }
-
-    public String getGuildName() { return guildName; }
-    public void setGuildName(String guildName) { this.guildName = guildName; }
 
     public LocalDate getGuessedAt() { return guessedAt; }
     public void setGuessedAt(LocalDate guessedAt) { this.guessedAt = guessedAt; }

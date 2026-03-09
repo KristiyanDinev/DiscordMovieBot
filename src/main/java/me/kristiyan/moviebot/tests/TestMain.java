@@ -19,7 +19,6 @@ public class TestMain {
         new StartCommandTest(serviceManager).runStartScenarios();
         new UpdatesCommandTest(serviceManager).runUpdateScenarios();
         new LeaderboardCommandTest(serviceManager, databaseManager).runLeaderboardScenarios();
-
     }
 
     public void testMovieReport() {

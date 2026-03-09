@@ -13,6 +13,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.kristiyan.moviebot.database.entities.activity.BotUsageEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGuessEntity;
+import me.kristiyan.moviebot.database.entities.leaderboards.GuildEntity;
+import me.kristiyan.moviebot.database.entities.leaderboards.GuildMemberEntity;
 import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieCategoryEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
@@ -95,19 +97,15 @@ public class DatabaseManager {
             Configuration configuration = new Configuration();
             configuration.addAnnotatedClass(ActiveGameEntity.class);
             configuration.addAnnotatedClass(ActiveGuessEntity.class);
-
-            configuration.addAnnotatedClass(MemberStatusEntity.class);
-
             configuration.addAnnotatedClass(MovieEntity.class);
             configuration.addAnnotatedClass(MovieCategoryEntity.class);
-
             configuration.addAnnotatedClass(PremiumUserEntity.class);
-
             configuration.addAnnotatedClass(UpdateAnnouncementEntity.class);
-
             configuration.addAnnotatedClass(MovieReportEntity.class);
-
             configuration.addAnnotatedClass(BotUsageEntity.class);
+            configuration.addAnnotatedClass(GuildEntity.class);
+            configuration.addAnnotatedClass(GuildMemberEntity.class);
+            configuration.addAnnotatedClass(MemberStatusEntity.class);
 
             sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder()
                     // Add standard properties
@@ -193,140 +191,4 @@ public class DatabaseManager {
 
         System.out.println("Logging config initialized with 1MB rolling files!");
     }
-
-    /*
-    private static void createTables() {
-        try (Connection conn = getConnection()) {
-            Statement stmt = conn.createStatement();
-
-            // Table for movies
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS movies (
-                    id SERIAL PRIMARY KEY,
-                    title TEXT NOT NULL UNIQUE,
-                    gif_url TEXT NOT NULL,
-                    genre VARCHAR(50) NOT NULL,
-                    movie_year INT NOT NULL,
-                    rating DECIMAL(3, 1) NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
-
-            // Movie categories for flexible categorization (comedy, fantasy, family, etc.)
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS movie_categories (
-                    movie_id INTEGER NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
-                    category VARCHAR(30) NOT NULL,
-                    PRIMARY KEY (movie_id, category)
-                )
-            """);
-
-            // Table to track current game session for each guild
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS active_games (
-                    guild_id TEXT PRIMARY KEY,
-                    movie_id INTEGER NOT NULL REFERENCES movies(id),
-                    current_round INTEGER DEFAULT 1,
-                    total_rounds INTEGER NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
-
-            // Table to track who has already guessed in current round
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS active_guesses (
-                    guild_id TEXT NOT NULL,
-                    member_id TEXT NOT NULL,
-                    round_number INTEGER NOT NULL,
-                    guessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (guild_id, member_id, round_number)
-                )
-            """);
-
-            // Table for guild leaderboard
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS guild_leaderboard (
-                    guild_id TEXT PRIMARY KEY,
-                    guild_name TEXT NOT NULL,
-                    correct_guesses INTEGER DEFAULT 0
-                )
-            """);
-
-            // Flexible member statistics table - tracks all types of guesses
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS member_stats (
-                    guild_id TEXT NOT NULL,
-                    member_id TEXT NOT NULL,
-                    member_nickname TEXT NOT NULL,
-                    stat_type VARCHAR(30) NOT NULL,
-                    correct_guesses INTEGER DEFAULT 0,
-                    PRIMARY KEY (guild_id, member_id, stat_type)
-                )
-            """);
-
-            // Updates table for bot announcements
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS updates (
-                    id SMALLSERIAL PRIMARY KEY,
-                    update_released_at TIMESTAMP NOT NULL DEFAULT NOW(),
-                    title VARCHAR(255) NOT NULL,
-                    short_description VARCHAR(1000) NOT NULL
-                )
-            """);
-
-            // Premium codes table
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS premium_codes (
-                    code VARCHAR(20) PRIMARY KEY
-                )
-            """);
-
-            // Premium users table
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS premium_users (
-                    user_id BIGINT PRIMARY KEY,
-                    activated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-                    expires_at TIMESTAMP NOT NULL,
-                    activation_code VARCHAR(20)
-                )
-            """);
-
-            // Create indexes for better query performance
-
-            // Movies indexes
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_movies_genre ON movies(genre)");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_movies_year ON movies(year)");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_movies_rating ON movies(rating)");
-
-            // Movie categories indexes
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_movie_categories_category ON movie_categories(category)");
-
-            // Active games indexes
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_active_games_guild ON active_games(guild_id)");
-
-            // Active guesses indexes
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_active_guesses_guild ON active_guesses(guild_id)");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_active_guesses_round ON active_guesses(guild_id, round_number)");
-
-            // Leaderboard indexes
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_guild_leaderboard_score ON guild_leaderboard(correct_guesses DESC)");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_member_stats_guild ON member_stats(guild_id)");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_member_stats_type ON member_stats(guild_id, stat_type)");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_member_stats_score ON member_stats(guild_id, stat_type, correct_guesses DESC)");
-
-            // Premium indexes
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_premium_users_user_id ON premium_users(user_id)");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_premium_users_expires ON premium_users(expires_at)");
-
-            // Updates indexes
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_updates_released ON updates(update_released_at DESC)");
-
-        } catch (SQLException e) {
-            System.err.println("Database table creation error: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Failed to create database tables", e);
-        }
-    }
-
-     */
 }

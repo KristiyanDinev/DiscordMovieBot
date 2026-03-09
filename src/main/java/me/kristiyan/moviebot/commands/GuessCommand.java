@@ -43,12 +43,10 @@ public class GuessCommand {
         MessageChannelUnion channel = event.getChannel();
         Member selfMember = guild.getSelfMember();
 
-        if (channel instanceof GuildChannel guildChannel) {
-            if (!selfMember.hasPermission(guildChannel, Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)) {
-                event.reply("❌ I don't have permission to see or chat in this channel!")
-                        .queue();
-                return;
-            }
+        if (channel instanceof GuildChannel guildChannel &&
+                !selfMember.hasPermission(guildChannel, Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)) {
+            event.reply("❌ I don't have permission to see or chat in this channel!").queue();
+            return;
         }
         event.reply("\uD83E\uDD14 Calculating your guess...")
                 .setEphemeral(true).queue();

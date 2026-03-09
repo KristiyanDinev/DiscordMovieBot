@@ -2,7 +2,6 @@ package me.kristiyan.moviebot;
 
 import me.kristiyan.moviebot.commands.CommandListener;
 import me.kristiyan.moviebot.database.DatabaseManager;
-import me.kristiyan.moviebot.services.ActiveGameService;
 import me.kristiyan.moviebot.services.ServiceManager;
 import me.kristiyan.moviebot.tests.TestMain;
 import net.dv8tion.jda.api.JDA;
@@ -35,14 +34,14 @@ public class Main {
                     .addEventListeners(new CommandListener())
                     .build();
 
-            //TestMain testMain = new TestMain(databaseManager, serviceManager, jda);
+            TestMain testMain = new TestMain(databaseManager, serviceManager, jda);
 
             // Wait for JDA to be ready
             jda.awaitReady();
             serviceManager.getMovieReportService().setTextChannel(jda, System.getenv("REPORT_GUILD_ID"),
                     System.getenv("REPORT_CHANNEL_ID"));
 
-            //testMain.testMovieReport();
+            testMain.testMovieReport();
 
             OptionData typeOption = new OptionData(OptionType.STRING, "type", "Choose the movie type", false)
                     .addChoice("Movie", "movie")
@@ -65,7 +64,6 @@ public class Main {
 
                     Commands.slash("guess", "Guess the movie title")
                             .addOption(OptionType.STRING, "title", "Your guess for the movie title", true),
-
                     Commands.slash("leaderboard", "Show the server and member global leaderboards"),
                     Commands.slash("leaderboard-daily", "Show the server and member daily leaderboards"),
                     Commands.slash("skip", "Skip the current movie and start a new round (reveals the answer)"),

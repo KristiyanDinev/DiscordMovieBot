@@ -28,12 +28,17 @@ public class HelpCommand {
 
                 .addField("🤖 Commands",
                         "`/start` • Begin a new game (with optional filters)\n" +
+                                "`/start-emoji` • Begin a new emoji game (with optional filters). Premium only!\n" +
+                                "`/hint` • Shows you useful hints to help your thinking. Unlimited uses only by premium!\n" +
                                 "`/guess` • Submit your movie or anime title\n" +
                                 "`/skip` • Give up and see the answer\n" +
                                 "`/leaderboard` • Compare your rank globally and locally\n" +
+                                "`/leaderboard-daily` • Check your rank for today\n" +
                                 "`/updates` • See what's new in the latest version\n" +
                                 "`/report [reason]` • Report an inaccurate movie for your current game\n" +
-                                "`/ping` • Displays the latency of the bot\n",
+                                "`/ping` • Displays the latency of the bot\n" +
+                                "`/profile (user)` • Displays your profile in the bot\n" +
+                                "`/xp-multiplier [how much xp to give per correct guess. Default is 1]` • Sets a custom xp multiplier for your specific guild. Premium only!\n",
                         false)
                 .addField("Notes:",
                         "In case the bot doesn't respond after using the command. Please check `/ping` or make sure the bot has **View Channel** permissions",

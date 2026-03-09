@@ -4,6 +4,8 @@ services:
     container_name: movie-bot-postgres-test
     restart: unless-stopped
     command: -c "app.user=${POSTGRES_DB_USERNAME}" -c "app.password=${POSTGRES_DB_PASSWORD}"
+    #ports:
+    #  - "5432:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB_NAME}
       POSTGRES_USER: ${POSTGRES_DB_ROOT_USER}

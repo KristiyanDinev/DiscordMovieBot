@@ -1,6 +1,7 @@
 package me.kristiyan.moviebot.commands;
 
-import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
+import me.kristiyan.moviebot.database.dto.GuildLeaderboardDTO;
+import me.kristiyan.moviebot.database.dto.MemberLeaderboardDTO;
 import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
 import me.kristiyan.moviebot.enums.LeaderboardTypeEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
@@ -9,7 +10,6 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import java.awt.*;
 import java.util.List;
-import java.util.function.Function;
 
 public class LeaderboardCommand {
 
@@ -18,70 +18,72 @@ public class LeaderboardCommand {
                                                 LeaderboardTypeEnum leaderboardTypeEnum) {
         String leaderboardTypeEnumName = leaderboardTypeEnum.toString();
         EmbedBuilder embed = new EmbedBuilder()
-                .setTitle("🏆 "+leaderboardTypeEnumName.charAt(0) +
-                        leaderboardTypeEnumName.toLowerCase().substring(1)+" Leaderboards")
+                .setTitle("🏆 " + leaderboardTypeEnumName.charAt(0) +
+                        leaderboardTypeEnumName.toLowerCase().substring(1) + " Leaderboards")
                 .setColor(Color.ORANGE)
                 .setFooter("Keep playing to climb the leaderboard! 🎬");
 
         var lbService = serviceManager.getLeaderboardsService();
 
-        List<MemberStatusEntity> GuildTopGuessesHighStakes;
-        List<MemberStatusEntity> GuildTopGuesses;
+        List<GuildLeaderboardDTO> guildTopGuessesHighStakes;
+        List<GuildLeaderboardDTO> guildTopGuesses;
 
-        List<MemberStatusEntity> MembersTopGuessesHighStakes;
-        List<MemberStatusEntity> MembersTopGuesses;
+        List<MemberLeaderboardDTO> membersTopGuessesHighStakes;
+        List<MemberLeaderboardDTO> membersTopGuesses;
 
         switch (leaderboardTypeEnum) {
             case GLOBAL: {
-                GuildTopGuessesHighStakes =
+                guildTopGuessesHighStakes =
                         lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES, 10);
-                GuildTopGuesses = lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
+                guildTopGuesses =
+                        lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
 
-                MembersTopGuessesHighStakes =
+                membersTopGuessesHighStakes =
                         lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
-                MembersTopGuesses =
+                membersTopGuesses =
                         lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES);
                 break;
             }
             case DAILY: {
-                GuildTopGuessesHighStakes =
+                guildTopGuessesHighStakes =
                         lbService.getDailyGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES, 10);
-                GuildTopGuesses = lbService.getDailyGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
+                guildTopGuesses =
+                        lbService.getDailyGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
 
-                MembersTopGuessesHighStakes =
+                membersTopGuessesHighStakes =
                         lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
-                MembersTopGuesses =
+                membersTopGuesses =
                         lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES);
                 break;
             }
             default: {
+                event.reply("❌ Invalid leaderboard type!").setEphemeral(true).queue();
                 return;
             }
         }
 
         // 1. Global Server Leaderboards
-        addLeaderboardField(embed, "🌍 Top Servers (High Stakes 🔥)",
-                GuildTopGuessesHighStakes, MemberStatusEntity::getGuildName);
+        addGuildLeaderboardField(embed, "🌍 Top Servers (High Stakes 🔥)",
+                guildTopGuessesHighStakes);
 
-        addLeaderboardField(embed, "🌍 Top Servers",
-                GuildTopGuesses, MemberStatusEntity::getGuildName);
+        addGuildLeaderboardField(embed, "🌍 Top Servers",
+                guildTopGuesses);
 
         // 2. Local Member Leaderboards
-        addLeaderboardField(embed, "👥 Top Players (This Server) (High Stakes 🔥)",
-                MembersTopGuessesHighStakes, MemberStatusEntity::getMemberNickname);
+        addMemberLeaderboardField(embed, "👥 Top Players (This Server) (High Stakes 🔥)",
+                membersTopGuessesHighStakes);
 
-        addLeaderboardField(embed, "👥 Top Players (This Server)",
-                MembersTopGuesses, MemberStatusEntity::getMemberNickname);
+        addMemberLeaderboardField(embed, "👥 Top Players (This Server)",
+                membersTopGuesses);
 
         event.replyEmbeds(embed.build()).queue();
     }
 
     /**
-     * Helper method to format lists into embed fields to avoid code duplication.
+     * Helper method to format guild leaderboard into embed field
      */
-    private static void addLeaderboardField(EmbedBuilder embed, String title,
-                                            List<MemberStatusEntity> entries,
-                                            Function<MemberStatusEntity, String> nameExtractor) {
+    private static void addGuildLeaderboardField(EmbedBuilder embed, String title,
+                                                 List<GuildLeaderboardDTO> entries) {
         if (entries == null || entries.isEmpty()) {
             embed.addField(title, "*No data yet!*", false);
             return;
@@ -89,9 +91,9 @@ public class LeaderboardCommand {
 
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < entries.size(); i++) {
-            MemberStatusEntity entry = entries.get(i);
-            int score = entry.getCorrectGuesses();
-            String name = nameExtractor.apply(entry);
+            GuildLeaderboardDTO entry = entries.get(i);
+            int score = entry.getTotalCorrectGuesses();
+            String name = entry.getGuildName();
 
             // Determine Medal/Rank
             String rank = switch (i) {
@@ -102,6 +104,40 @@ public class LeaderboardCommand {
             };
 
             builder.append(rank).append(" **").append(name).append("** - ")
+                    .append(score).append(" correct guess")
+                    .append(score == 1 ? "" : "es")
+                    .append("\n");
+        }
+
+        embed.addField(title, builder.toString(), false);
+    }
+
+    /**
+     * Helper method to format member leaderboard into embed field
+     */
+    private static void addMemberLeaderboardField(EmbedBuilder embed, String title,
+                                                  List<MemberLeaderboardDTO> entries) {
+        if (entries == null || entries.isEmpty()) {
+            embed.addField(title, "*No data yet!*", false);
+            return;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < entries.size(); i++) {
+            MemberLeaderboardDTO entry = entries.get(i);
+            int score = entry.getTotalCorrectGuesses();
+            String name = entry.getNickname();
+            int level = entry.getLevel();
+
+            // Determine Medal/Rank
+            String rank = switch (i) {
+                case 0 -> "🥇";
+                case 1 -> "🥈";
+                case 2 -> "🥉";
+                default -> (i + 1) + ".";
+            };
+
+            builder.append(rank).append(" **").append(name).append("** (Lvl ").append(level).append(") - ")
                     .append(score).append(" correct guess")
                     .append(score == 1 ? "" : "es")
                     .append("\n");
