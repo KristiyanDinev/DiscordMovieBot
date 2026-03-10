@@ -13,12 +13,12 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.kristiyan.moviebot.database.entities.activity.BotUsageEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGuessEntity;
-import me.kristiyan.moviebot.database.entities.leaderboards.GuildEntity;
-import me.kristiyan.moviebot.database.entities.leaderboards.GuildMemberEntity;
+import me.kristiyan.moviebot.database.entities.guild.GuildEntity;
+import me.kristiyan.moviebot.database.entities.guild.GuildMemberEntity;
+import me.kristiyan.moviebot.database.entities.guild.MemberEntity;
 import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
-import me.kristiyan.moviebot.database.entities.movie.MovieCategoryEntity;
+import me.kristiyan.moviebot.database.entities.movie.MovieGenreEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
-import me.kristiyan.moviebot.database.entities.premium.PremiumUserEntity;
 import me.kristiyan.moviebot.database.entities.reports.MovieReportEntity;
 import me.kristiyan.moviebot.database.entities.updates.UpdateAnnouncementEntity;
 import org.hibernate.SessionFactory;
@@ -98,13 +98,13 @@ public class DatabaseManager {
             configuration.addAnnotatedClass(ActiveGameEntity.class);
             configuration.addAnnotatedClass(ActiveGuessEntity.class);
             configuration.addAnnotatedClass(MovieEntity.class);
-            configuration.addAnnotatedClass(MovieCategoryEntity.class);
-            configuration.addAnnotatedClass(PremiumUserEntity.class);
+            configuration.addAnnotatedClass(MovieGenreEntity.class);
             configuration.addAnnotatedClass(UpdateAnnouncementEntity.class);
             configuration.addAnnotatedClass(MovieReportEntity.class);
             configuration.addAnnotatedClass(BotUsageEntity.class);
             configuration.addAnnotatedClass(GuildEntity.class);
             configuration.addAnnotatedClass(GuildMemberEntity.class);
+            configuration.addAnnotatedClass(MemberEntity.class);
             configuration.addAnnotatedClass(MemberStatusEntity.class);
 
             sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder()

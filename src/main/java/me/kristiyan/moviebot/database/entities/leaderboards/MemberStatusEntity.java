@@ -1,6 +1,7 @@
 package me.kristiyan.moviebot.database.entities.leaderboards;
 
 import jakarta.persistence.*;
+import me.kristiyan.moviebot.database.entities.guild.GuildMemberEntity;
 import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
 
 import java.time.LocalDate;

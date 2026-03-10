@@ -6,7 +6,6 @@ public class ServiceManager {
     private final ActiveGameService activeGameService;
     private final LeaderboardsService leaderboardsService;
     private final MovieService movieService;
-    private final PremiumService premiumService;
     private final UpdateAnnouncementService updateAnnouncementService;
     private final MovieReportService movieReportService;
     private final BotUsageService botUsageService;
@@ -15,7 +14,6 @@ public class ServiceManager {
         activeGameService = new ActiveGameService(databaseManager);
         leaderboardsService = new LeaderboardsService(databaseManager, this);
         movieService = new MovieService(databaseManager);
-        premiumService = new PremiumService(databaseManager);
         updateAnnouncementService = new UpdateAnnouncementService(databaseManager);
         movieReportService = new MovieReportService(databaseManager);
         botUsageService = new BotUsageService(databaseManager);
@@ -33,9 +31,6 @@ public class ServiceManager {
         return movieService;
     }
 
-    public PremiumService getPremiumService() {
-        return premiumService;
-    }
 
     public UpdateAnnouncementService getUpdateAnnouncementService() {
         return updateAnnouncementService;

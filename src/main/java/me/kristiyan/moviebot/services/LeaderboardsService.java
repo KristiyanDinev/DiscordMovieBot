@@ -7,8 +7,9 @@ import me.kristiyan.moviebot.database.dto.GuildLeaderboardDTO;
 import me.kristiyan.moviebot.database.dto.MemberLeaderboardDTO;
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGuessEntity;
-import me.kristiyan.moviebot.database.entities.leaderboards.GuildEntity;
-import me.kristiyan.moviebot.database.entities.leaderboards.GuildMemberEntity;
+import me.kristiyan.moviebot.database.entities.guild.GuildEntity;
+import me.kristiyan.moviebot.database.entities.guild.GuildMemberEntity;
+import me.kristiyan.moviebot.database.entities.guild.MemberEntity;
 import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
 import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
 import org.hibernate.Session;
@@ -17,9 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class LeaderboardsService {
@@ -42,7 +41,7 @@ public class LeaderboardsService {
 
             Transaction tx = session.beginTransaction();
             try {
-                // 1. AGGREGATE scores first: Map<MemberId, PointsWon>
+                // 1. Aggregate scores and collect nicknames per member
                 Map<String, Long> pointsPerMember = correctGuesses.stream()
                         .collect(Collectors.groupingBy(ActiveGuessEntity::getMemberId, Collectors.counting()));
 
@@ -52,7 +51,8 @@ public class LeaderboardsService {
                                 ActiveGuessEntity::getMemberNickname,
                                 (existing, replacement) -> existing
                         ));
-                // 2. Get or create Guild entity
+
+                // 2. Get or create GuildEntity
                 GuildEntity guild = session.find(GuildEntity.class, guildId);
                 if (guild == null) {
                     guild = new GuildEntity();
@@ -60,65 +60,81 @@ public class LeaderboardsService {
                     guild.setGuildName(guildName);
                     session.persist(guild);
                 } else if (!guild.getGuildName().equals(guildName)) {
-                    // Update guild name if it changed
                     guild.setGuildName(guildName);
                     session.merge(guild);
                 }
 
                 List<String> memberIds = new ArrayList<>(pointsPerMember.keySet());
 
-                // 3. Fetch existing GuildMember entities
+                // 3. Resolve or create MemberEntity for each guesser
+                Map<String, MemberEntity> memberEntities = new HashMap<>();
+                for (String memberId : memberIds) {
+                    MemberEntity memberEntity = session.find(MemberEntity.class, memberId);
+                    if (memberEntity == null) {
+                        memberEntity = new MemberEntity();
+                        memberEntity.setMemberId(memberId);
+                        memberEntity.setMemberName(idToNickname.getOrDefault(memberId, "Unknown User"));
+                        session.persist(memberEntity);
+                    } else {
+                        // Sync display name if it changed
+                        String latestNickname = idToNickname.getOrDefault(memberId, memberEntity.getMemberName());
+                        if (!memberEntity.getMemberName().equals(latestNickname)) {
+                            memberEntity.setMemberName(latestNickname);
+                            session.merge(memberEntity);
+                        }
+                    }
+                    memberEntities.put(memberId, memberEntity);
+                }
+
+                // 4. Fetch existing GuildMemberEntities — join through member relation
                 CriteriaBuilder cb = session.getCriteriaBuilder();
                 CriteriaQuery<GuildMemberEntity> memberQuery = cb.createQuery(GuildMemberEntity.class);
                 Root<GuildMemberEntity> memberRoot = memberQuery.from(GuildMemberEntity.class);
 
                 memberQuery.select(memberRoot).where(
                         cb.equal(memberRoot.get("guild").get("guildId"), guildId),
-                        memberRoot.get("memberId").in(memberIds)
+                        memberRoot.get("member").get("memberId").in(memberIds)  // fixed: was "memberId" raw field
                 );
 
                 Map<String, GuildMemberEntity> existingMembers = session.createQuery(memberQuery)
                         .getResultStream()
-                        .collect(Collectors.toMap(GuildMemberEntity::getMemberId, m -> m));
+                        .collect(Collectors.toMap(m -> m.getMember().getMemberId(), m -> m));
 
-                // 4. Create or update GuildMember entities
+                // 5. Create or update GuildMemberEntities
                 for (Map.Entry<String, Long> entry : pointsPerMember.entrySet()) {
                     String memberId = entry.getKey();
                     int pointsToAdd = entry.getValue().intValue();
 
-                    GuildMemberEntity member = existingMembers.get(memberId);
-
-                    if (member == null) {
-                        // Create new member
-                        member = new GuildMemberEntity();
-                        member.setGuild(guild);
-                        member.setMemberId(memberId);
-                        member.setMemberNickname(idToNickname.getOrDefault(memberId, "Unknown User"));
-                        member.setXp(pointsToAdd);
-                        session.persist(member);
-                        existingMembers.put(memberId, member);
+                    GuildMemberEntity guildMember = existingMembers.get(memberId);
+                    if (guildMember == null) {
+                        guildMember = new GuildMemberEntity();
+                        guildMember.setGuild(guild);
+                        guildMember.setMember(memberEntities.get(memberId));  // fixed: was setMemberId()
+                        guildMember.setMemberNickname(idToNickname.getOrDefault(memberId, "Unknown User"));
+                        guildMember.setXp(pointsToAdd);
+                        session.persist(guildMember);
+                        existingMembers.put(memberId, guildMember);
                     } else {
-                        // Update existing member
-                        String newNickname = idToNickname.getOrDefault(memberId, member.getMemberNickname());
-                        if (!member.getMemberNickname().equals(newNickname)) {
-                            member.setMemberNickname(newNickname);
+                        String newNickname = idToNickname.getOrDefault(memberId, guildMember.getMemberNickname());
+                        if (!guildMember.getMemberNickname().equals(newNickname)) {
+                            guildMember.setMemberNickname(newNickname);
                         }
-                        // Add XP
-                        member.setXp(member.getXp() + pointsToAdd);
-                        session.merge(member);
+                        guildMember.setXp(guildMember.getXp() + pointsToAdd);
+                        session.merge(guildMember);
                     }
                 }
 
-                // Flush to ensure GuildMember IDs are generated
+                // Flush to ensure GuildMember IDs are generated before stats step
                 session.flush();
-                // 5. Fetch existing stats for today
+
+                // 6. Fetch existing MemberStatusEntity records for today
                 LocalDate today = LocalDate.now();
-                CriteriaQuery<MemberStatusEntity> statsQuery = cb.createQuery(MemberStatusEntity.class);
-                Root<MemberStatusEntity> statsRoot = statsQuery.from(MemberStatusEntity.class);
-                // Get IDs of guild members
                 List<Long> guildMemberIds = existingMembers.values().stream()
                         .map(GuildMemberEntity::getId)
                         .collect(Collectors.toList());
+
+                CriteriaQuery<MemberStatusEntity> statsQuery = cb.createQuery(MemberStatusEntity.class);
+                Root<MemberStatusEntity> statsRoot = statsQuery.from(MemberStatusEntity.class);
 
                 statsQuery.select(statsRoot).where(
                         statsRoot.get("guildMember").get("id").in(guildMemberIds),
@@ -130,16 +146,16 @@ public class LeaderboardsService {
                         .getResultStream()
                         .collect(Collectors.toMap(s -> s.getGuildMember().getId(), s -> s));
 
-                // 6. Update or create stats
+                // 7. Create or update MemberStatusEntity records
                 for (Map.Entry<String, Long> entry : pointsPerMember.entrySet()) {
                     String memberId = entry.getKey();
                     int pointsToAdd = entry.getValue().intValue();
 
                     GuildMemberEntity guildMember = existingMembers.get(memberId);
-                    if (guildMember == null) continue; // Should not happen
+                    if (guildMember == null) continue;
+
                     MemberStatusEntity stats = existingStats.get(guildMember.getId());
                     if (stats == null) {
-                        // Create new stats record
                         stats = new MemberStatusEntity();
                         stats.setGuildMember(guildMember);
                         stats.setStatusType(leaderboardMemberStatus);
@@ -147,7 +163,6 @@ public class LeaderboardsService {
                         stats.setCorrectGuesses(pointsToAdd);
                         session.persist(stats);
                     } else {
-                        // Update existing stats
                         stats.setCorrectGuesses(stats.getCorrectGuesses() + pointsToAdd);
                         session.merge(stats);
                     }
@@ -156,11 +171,11 @@ public class LeaderboardsService {
                 tx.commit();
             } catch (Exception e) {
                 tx.rollback();
+                logger.error("Failed to record correct guesses for guild [{}]", guildId, e);
                 throw e;
             }
         } catch (Exception ex) {
-            logger.error(ex.fillInStackTrace().toString());
-            System.err.println(ex.getMessage());
+            logger.error("Session error while recording correct guesses for guild [{}]", guildId, ex);
         }
     }
 
@@ -182,6 +197,109 @@ public class LeaderboardsService {
         }
 
         return level;
+    }
+
+
+    public Optional<GuildMemberEntity> getGuildMember(String guildId, String memberId) {
+        try (Session session = databaseManager.getSessionFactory().openSession()) {
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<GuildMemberEntity> query = cb.createQuery(GuildMemberEntity.class);
+            Root<GuildMemberEntity> root = query.from(GuildMemberEntity.class);
+            query.select(root)
+                    .where(
+                            cb.equal(root.get("guild").get("guildId"), guildId),
+                            cb.equal(root.get("memberId"), memberId)
+                    );
+            return Optional.ofNullable(session.createQuery(query).getSingleResultOrNull());
+        } catch (Exception e) {
+            logger.error(e.fillInStackTrace().toString());
+            System.err.println(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    public Optional<GuildEntity> getGuild(String guildId) {
+        try (Session session = databaseManager.getSessionFactory().openSession()) {
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<GuildEntity> query = cb.createQuery(GuildEntity.class);
+            Root<GuildEntity> root = query.from(GuildEntity.class);
+            query.select(root).where(cb.equal(root.get("guildId"), guildId));
+            return Optional.ofNullable(session.createQuery(query).getSingleResultOrNull());
+        } catch (Exception e) {
+            logger.error(e.fillInStackTrace().toString());
+            System.err.println(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    public boolean createGuild(String guildId, String guildName) {
+        Transaction tx = null;
+        try (Session session = databaseManager.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            GuildEntity guildEntity = new GuildEntity();
+            guildEntity.setGuildId(guildId);
+            guildEntity.setGuildName(guildName);
+            session.persist(guildEntity);
+            tx.commit();
+            return true;
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            logger.error(e.fillInStackTrace().toString());
+            System.err.println(e.getMessage());
+            return false;
+        }
+    }
+
+    public Optional<GuildMemberEntity> createGuildMember(String guildId, String guildName, String memberId,
+                                                         String memberName, long xp, LocalDate subscribedAt,
+                                                         LocalDate expiresAt) {
+        GuildEntity guildEntity = getGuild(guildId).orElseGet(() -> {
+            if (createGuild(guildId, guildName)) {
+                return getGuild(guildId).orElse(null);
+            }
+            return null;
+        });
+
+        if (guildEntity == null) {
+            logger.error("Failed to resolve guild [{}] for member creation", guildId);
+            return Optional.empty();
+        }
+
+        Transaction tx = null;
+        try (Session session = databaseManager.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+
+            // Resolve or create the global MemberEntity
+            MemberEntity memberEntity = session.find(MemberEntity.class, memberId);
+            if (memberEntity == null) {
+                memberEntity = new MemberEntity();
+                memberEntity.setMemberId(memberId);
+                memberEntity.setMemberName(memberName);
+                memberEntity.setSubscribedAt(subscribedAt);
+                memberEntity.setExpiresAt(expiresAt);
+                session.persist(memberEntity);
+            } else {
+                // Keep name and premium dates up to date
+                memberEntity.setMemberName(memberName);
+                memberEntity.setSubscribedAt(subscribedAt);
+                memberEntity.setExpiresAt(expiresAt);
+                session.merge(memberEntity);
+            }
+
+            GuildMemberEntity guildMemberEntity = new GuildMemberEntity();
+            guildMemberEntity.setGuild(guildEntity);
+            guildMemberEntity.setMember(memberEntity);
+            guildMemberEntity.setMemberNickname(memberName);
+            guildMemberEntity.setXp(xp);
+            session.persist(guildMemberEntity);
+
+            tx.commit();
+            return Optional.of(guildMemberEntity);
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            logger.error("Failed to create guild member [{}, {}]", guildId, memberId, e);
+            return Optional.empty();
+        }
     }
 
     /**

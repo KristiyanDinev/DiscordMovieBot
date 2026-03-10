@@ -27,8 +27,11 @@ public class HelpCommand {
                         false)
 
                 .addField("🤖 Commands",
-                        "`/start` • Begin a new game (with optional filters)\n" +
-                                "`/start-emoji` • Begin a new emoji game (with optional filters). Premium only!\n" +
+                        "`/start` • Start a new game where you have to guess the movie from a scene (with optional filters)\n" +
+                                "`/start-emoji` • Start a game where you have to guess the movie from emojis (with optional filters). Premium only!\n" +
+                                "`/start-quote • Start a game where you have to guess the movie from famous quotes (with optional filters). Premium only!\n" +
+                                "`/start-zoomed` • Start a new game where you have to guess the movie from a zoomed in scene (with optional filters). Premium only!\n" +
+                                "`/daily-challange` • Try to guess today's movie by clues. Premium only!\n" +
                                 "`/hint` • Shows you useful hints to help your thinking. Unlimited uses only by premium!\n" +
                                 "`/guess` • Submit your movie or anime title\n" +
                                 "`/skip` • Give up and see the answer\n" +
@@ -37,12 +40,14 @@ public class HelpCommand {
                                 "`/updates` • See what's new in the latest version\n" +
                                 "`/report [reason]` • Report an inaccurate movie for your current game\n" +
                                 "`/ping` • Displays the latency of the bot\n" +
-                                "`/profile (user)` • Displays your profile in the bot\n" +
-                                "`/xp-multiplier [how much xp to give per correct guess. Default is 1]` • Sets a custom xp multiplier for your specific guild. Premium only!\n",
+                                "`/profile (user)` • Displays your profile in the bot\n",
                         false)
                 .addField("Notes:",
                         "In case the bot doesn't respond after using the command. Please check `/ping` or make sure the bot has **View Channel** permissions",
                         false)
                 .setFooter("\uD83C\uDF7F Popcorn ready? Good luck!").build()).queue();
+
+        // TODO add to profile: Accuracy in %. Win streaks.
+        // TODO premium users get to choose their categories, while free users get random scenes
     }
 }

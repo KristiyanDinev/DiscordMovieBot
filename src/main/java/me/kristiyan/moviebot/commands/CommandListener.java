@@ -32,6 +32,7 @@ public class CommandListener extends ListenerAdapter {
             case "updates" -> UpdatesCommand.handleUpdatesCommand(event, Main.serviceManager);
             case "report"  -> ReportCommand.handleReportCommand(event, guildId, Main.serviceManager);
             case "ping"  -> PingCommand.handlePingCommand(event);
+            case "profile" -> ProfileCommand.handleProfileCommand(event, guild, member, Main.serviceManager);
         }
     }
 }

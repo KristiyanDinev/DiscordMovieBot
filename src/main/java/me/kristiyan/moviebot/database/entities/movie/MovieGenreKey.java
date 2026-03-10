@@ -6,32 +6,32 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Embeddable
-public class MovieCategoryKey implements Serializable {
+public class MovieGenreKey implements Serializable {
     private int movieId; // Must match the name of the field in Entity
-    private String category;
+    private String genre;
 
-    public MovieCategoryKey() {}
-    public MovieCategoryKey(int movieId, String category) {
+    public MovieGenreKey() {}
+    public MovieGenreKey(int movieId, String genre) {
         this.movieId = movieId;
-        this.category = category;
+        this.genre = genre;
     }
 
     // Getters are required for JPA to access the fields
     public int getMovieId() { return movieId; }
     public void setMovieId(int movieId) { this.movieId = movieId; }
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getGenre() { return genre; }
+    public void setGenre(String genre) { this.genre = genre; }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MovieCategoryKey that = (MovieCategoryKey) o;
-        return movieId == that.movieId && Objects.equals(category, that.category);
+        MovieGenreKey that = (MovieGenreKey) o;
+        return movieId == that.movieId && Objects.equals(genre, that.genre);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(movieId, category);
+        return Objects.hash(movieId, genre);
     }
 }

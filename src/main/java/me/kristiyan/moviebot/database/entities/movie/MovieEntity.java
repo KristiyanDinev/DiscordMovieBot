@@ -44,7 +44,7 @@ public class MovieEntity {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MovieCategoryEntity> categories = new ArrayList<>();
+    private List<MovieGenreEntity> genres = new ArrayList<>();
 
     // Getters & Setters
     public int getId() { return id; }
@@ -68,11 +68,11 @@ public class MovieEntity {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public List<MovieCategoryEntity> getCategories() { return categories; }
-    public void setCategories(List<MovieCategoryEntity> categories) { this.categories = categories; }
+    public List<MovieGenreEntity> getGenres() { return genres; }
+    public void setGenres(List<MovieGenreEntity> genres) { this.genres = genres; }
 
-    public void addCategory(String categoryName) {
-        this.categories.add(new MovieCategoryEntity(this, categoryName));
+    public void addGenre(String genreName) {
+        this.genres.add(new MovieGenreEntity(this, genreName));
     }
 
     public BigDecimal getPopularity() { return popularity; }
