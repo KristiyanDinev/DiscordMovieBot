@@ -2,7 +2,7 @@ package me.kristiyan.moviebot.commands;
 
 import me.kristiyan.moviebot.database.dto.GuildLeaderboardDTO;
 import me.kristiyan.moviebot.database.dto.MemberLeaderboardDTO;
-import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
+import me.kristiyan.moviebot.enums.LeaderboardMemberStatusEnum;
 import me.kristiyan.moviebot.enums.LeaderboardTypeEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -34,26 +34,26 @@ public class LeaderboardCommand {
         switch (leaderboardTypeEnum) {
             case GLOBAL: {
                 guildTopGuessesHighStakes =
-                        lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES, 10);
+                        lbService.getGuildLeaderboard(LeaderboardMemberStatusEnum.TOP_GUESSES_HIGH_STAKES, 10);
                 guildTopGuesses =
-                        lbService.getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
+                        lbService.getGuildLeaderboard(LeaderboardMemberStatusEnum.TOP_GUESSES, 10);
 
                 membersTopGuessesHighStakes =
-                        lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
+                        lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatusEnum.TOP_GUESSES_HIGH_STAKES);
                 membersTopGuesses =
-                        lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES);
+                        lbService.getMemberLeaderboard(guildId, 10, LeaderboardMemberStatusEnum.TOP_GUESSES);
                 break;
             }
             case DAILY: {
                 guildTopGuessesHighStakes =
-                        lbService.getDailyGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES, 10);
+                        lbService.getDailyGuildLeaderboard(LeaderboardMemberStatusEnum.TOP_GUESSES_HIGH_STAKES, 10);
                 guildTopGuesses =
-                        lbService.getDailyGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
+                        lbService.getDailyGuildLeaderboard(LeaderboardMemberStatusEnum.TOP_GUESSES, 10);
 
                 membersTopGuessesHighStakes =
-                        lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
+                        lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatusEnum.TOP_GUESSES_HIGH_STAKES);
                 membersTopGuesses =
-                        lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES);
+                        lbService.getDailyMemberLeaderboard(guildId, 10, LeaderboardMemberStatusEnum.TOP_GUESSES);
                 break;
             }
             default: {
@@ -127,7 +127,6 @@ public class LeaderboardCommand {
             MemberLeaderboardDTO entry = entries.get(i);
             int score = entry.getTotalCorrectGuesses();
             String name = entry.getNickname();
-            int level = entry.getLevel();
 
             // Determine Medal/Rank
             String rank = switch (i) {
@@ -137,7 +136,7 @@ public class LeaderboardCommand {
                 default -> (i + 1) + ".";
             };
 
-            builder.append(rank).append(" **").append(name).append("** (Lvl ").append(level).append(") - ")
+            builder.append(rank).append(" **").append(name).append("**").append(" - ")
                     .append(score).append(" correct guess")
                     .append(score == 1 ? "" : "es")
                     .append("\n");

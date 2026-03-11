@@ -1,12 +1,12 @@
 package me.kristiyan.moviebot.database.dto;
 
-import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
+import me.kristiyan.moviebot.enums.LeaderboardMemberStatusEnum;
 
 public class GuildLeaderboardDTO {
     private String guildId;
     private String guildName;
     private int totalCorrectGuesses;
-    private LeaderboardMemberStatus statusType;
+    private LeaderboardMemberStatusEnum statusType;
 
     // Getters & Setters
     public String getGuildId() {
@@ -33,11 +33,11 @@ public class GuildLeaderboardDTO {
         this.totalCorrectGuesses = totalCorrectGuesses;
     }
 
-    public LeaderboardMemberStatus getStatusType() {
+    public LeaderboardMemberStatusEnum getStatusType() {
         return statusType;
     }
 
-    public void setStatusType(LeaderboardMemberStatus statusType) {
+    public void setStatusType(LeaderboardMemberStatusEnum statusType) {
         this.statusType = statusType;
     }
 

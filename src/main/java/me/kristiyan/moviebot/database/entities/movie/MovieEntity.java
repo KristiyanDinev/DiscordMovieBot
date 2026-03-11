@@ -43,6 +43,15 @@ public class MovieEntity {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "hint", nullable = false)
+    private String hint;
+
+    @Column(name = "emoji", nullable = false)
+    private String emoji;
+
+    @Column(name = "quote", nullable = false)
+    private String quote;
+
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MovieGenreEntity> genres = new ArrayList<>();
 
@@ -80,4 +89,13 @@ public class MovieEntity {
 
     public int getDuration() { return duration; }
     public void setDuration(int duration) { this.duration = duration; }
+
+    public String getHint() { return hint; }
+    public void setHint(String hint) { this.hint = hint; }
+
+    public String getEmoji() { return emoji; }
+    public void setEmoji(String emoji) { this.emoji = emoji; }
+
+    public String getQuote() { return quote; }
+    public void setQuote(String quote) { this.quote = quote; }
 }

@@ -2,6 +2,7 @@ package me.kristiyan.moviebot.tests;
 
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 
 import java.util.Optional;
@@ -40,9 +41,10 @@ public class SkipCommandTest {
             return;
         }
         MovieEntity movieA = movieAOptional.get();
-        services.getActiveGameService().startGame(guildId, movieA, 5, false, false, null);
+        services.getActiveGameService().startGame(guildId, movieA, 5,
+                false, false, null, GamemodeEnum.NORMAL);
 
-        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
         if (game == null) {
             System.out.println("[ERROR] Game not found");
             return;
@@ -60,7 +62,8 @@ public class SkipCommandTest {
         services.getActiveGameService().updateActiveGame(game);
 
         // Verify
-        ActiveGameEntity updatedGame = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity updatedGame = services.getActiveGameService().findRelevantGame(guildId,
+                userId, GamemodeEnum.NORMAL);
         if (updatedGame == null) {
             System.out.println("[ERROR] Updated Game not found");
             return;
@@ -82,9 +85,10 @@ public class SkipCommandTest {
             return;
         }
         MovieEntity movie = movieEntityOptional.get();
-        services.getActiveGameService().startGame(guildId, movie, 3, true, false, null);
+        services.getActiveGameService().startGame(guildId, movie, 3,
+                true, false, null, GamemodeEnum.NORMAL);
 
-        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
         if (game == null) {
             System.out.println("[ERROR] Game not found");
             return;
@@ -109,9 +113,10 @@ public class SkipCommandTest {
             return;
         }
         MovieEntity movieOriginal = movieOriginalOptional.get();
-        services.getActiveGameService().startGame(guildId, movieOriginal, 1, false, true, userId);
+        services.getActiveGameService().startGame(guildId, movieOriginal, 1,
+                false, true, userId, GamemodeEnum.NORMAL);
 
-        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
         if (game == null) {
             System.out.println("[ERROR] Game not found");
             return;
@@ -126,7 +131,8 @@ public class SkipCommandTest {
         services.getActiveGameService().updateActiveGame(game);
 
         // Simulate a new session/lookup to ensure it saved to DB
-        ActiveGameEntity reloadedGame = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity reloadedGame = services.getActiveGameService().findRelevantGame(guildId,
+                userId, GamemodeEnum.NORMAL);
         if (reloadedGame == null) {
             System.out.println("[ERROR] Reloaded Game not found");
             return;

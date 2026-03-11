@@ -2,7 +2,7 @@ package me.kristiyan.moviebot.database.entities.leaderboards;
 
 import jakarta.persistence.*;
 import me.kristiyan.moviebot.database.entities.guild.GuildMemberEntity;
-import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
+import me.kristiyan.moviebot.enums.LeaderboardMemberStatusEnum;
 
 import java.time.LocalDate;
 
@@ -37,7 +37,7 @@ public class MemberStatusEntity {
 
     @Column(name = "status_type", nullable = false)
     @Enumerated(EnumType.ORDINAL)
-    private LeaderboardMemberStatus statusType;
+    private LeaderboardMemberStatusEnum statusType;
 
     @Column(name = "correct_guesses", nullable = false)
     private int correctGuesses = 0;
@@ -56,8 +56,8 @@ public class MemberStatusEntity {
     public GuildMemberEntity getGuildMember() { return guildMember; }
     public void setGuildMember(GuildMemberEntity guildMember) { this.guildMember = guildMember; }
 
-    public LeaderboardMemberStatus getStatusType() { return statusType; }
-    public void setStatusType(LeaderboardMemberStatus statusType) { this.statusType = statusType; }
+    public LeaderboardMemberStatusEnum getStatusType() { return statusType; }
+    public void setStatusType(LeaderboardMemberStatusEnum statusType) { this.statusType = statusType; }
 
     public int getCorrectGuesses() { return correctGuesses; }
     public void setCorrectGuesses(int correctGuesses) { this.correctGuesses = correctGuesses; }

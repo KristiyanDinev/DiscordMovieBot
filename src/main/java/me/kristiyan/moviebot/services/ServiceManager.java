@@ -10,7 +10,7 @@ public class ServiceManager {
     private final MovieReportService movieReportService;
     private final BotUsageService botUsageService;
     private final PremiumService premiumService;
-    private final ProfileService profileService;
+    private final DailyChallengeService dailyChallengeService;
 
     public ServiceManager(DatabaseManager databaseManager) {
         premiumService = new PremiumService(databaseManager);
@@ -20,7 +20,7 @@ public class ServiceManager {
         updateAnnouncementService = new UpdateAnnouncementService(databaseManager);
         movieReportService = new MovieReportService(databaseManager);
         botUsageService = new BotUsageService(databaseManager);
-        profileService = new ProfileService(databaseManager);
+        dailyChallengeService = new DailyChallengeService(databaseManager);
     }
 
     public ActiveGameService getActiveGameService() {
@@ -51,7 +51,7 @@ public class ServiceManager {
     public PremiumService getPremiumService() {
         return premiumService;
     }
-    public ProfileService getProfileService() {
-        return profileService;
+    public DailyChallengeService getDailyChallengeService() {
+        return dailyChallengeService;
     }
 }

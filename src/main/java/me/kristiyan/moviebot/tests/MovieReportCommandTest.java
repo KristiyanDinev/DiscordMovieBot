@@ -3,6 +3,7 @@ package me.kristiyan.moviebot.tests;
 
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 import net.dv8tion.jda.api.JDA;
 
@@ -40,7 +41,7 @@ public class MovieReportCommandTest {
     private void testReportWithNoActiveGame() {
         System.out.println("[1] Testing Report with No Active Game...");
         // findRelevantGame should return null
-        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
 
         if (game == null) {
             System.out.println("    - PASSED: Logic would correctly block report (no game found).");
@@ -59,8 +60,9 @@ public class MovieReportCommandTest {
             return;
         }
         MovieEntity movie = movieEntityOptional.get();
-        services.getActiveGameService().startGame(guildId, movie, 1, false, true, userId);
-        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
+        services.getActiveGameService().startGame(guildId, movie, 1,
+                false, true, userId, GamemodeEnum.NORMAL);
+        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
 
         // Simulate Command Logic
         String reason = "The GIF doesn't match the title.";
@@ -77,7 +79,7 @@ public class MovieReportCommandTest {
     private void testDuplicateReportPrevention() {
         System.out.println("[3] Testing Duplicate Report Prevention...");
 
-        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
         if (game == null) {
             System.out.println("[Error] game not found.");
             return;

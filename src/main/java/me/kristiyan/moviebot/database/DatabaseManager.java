@@ -13,11 +13,11 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.kristiyan.moviebot.database.entities.activity.BotUsageEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGuessEntity;
+import me.kristiyan.moviebot.database.entities.games.DailyChallengeEntity;
 import me.kristiyan.moviebot.database.entities.guild.GuildEntity;
 import me.kristiyan.moviebot.database.entities.guild.GuildMemberEntity;
 import me.kristiyan.moviebot.database.entities.guild.MemberEntity;
 import me.kristiyan.moviebot.database.entities.leaderboards.MemberStatusEntity;
-import me.kristiyan.moviebot.database.entities.leaderboards.MemberGenreCountEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieGenreEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 import me.kristiyan.moviebot.database.entities.reports.MovieReportEntity;
@@ -98,6 +98,7 @@ public class DatabaseManager {
             Configuration configuration = new Configuration();
             configuration.addAnnotatedClass(ActiveGameEntity.class);
             configuration.addAnnotatedClass(ActiveGuessEntity.class);
+            configuration.addAnnotatedClass(DailyChallengeEntity.class);
             configuration.addAnnotatedClass(MovieEntity.class);
             configuration.addAnnotatedClass(MovieGenreEntity.class);
             configuration.addAnnotatedClass(UpdateAnnouncementEntity.class);
@@ -107,7 +108,6 @@ public class DatabaseManager {
             configuration.addAnnotatedClass(GuildMemberEntity.class);
             configuration.addAnnotatedClass(MemberEntity.class);
             configuration.addAnnotatedClass(MemberStatusEntity.class);
-            configuration.addAnnotatedClass(MemberGenreCountEntity.class);
 
             sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder()
                     // Add standard properties

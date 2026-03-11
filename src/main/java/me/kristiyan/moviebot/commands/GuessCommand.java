@@ -2,7 +2,8 @@ package me.kristiyan.moviebot.commands;
 
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
-import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
+import me.kristiyan.moviebot.enums.LeaderboardMemberStatusEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 import me.kristiyan.moviebot.utils.MovieMatcher;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -24,13 +25,17 @@ public class GuessCommand {
             event.reply("❌ Please provide a title!").setEphemeral(true).queue();
             return;
         }
+        OptionMapping gamemodeOption = event.getOption("gamemode");
+        GamemodeEnum gamemode = gamemodeOption != null
+                ? GamemodeEnum.valueOf(gamemodeOption.getAsString())
+                : GamemodeEnum.NORMAL;
 
         Member member = event.getMember();
         if (member == null) return;
 
         String guildId = guild.getId();
         String guildName = guild.getName();
-        ActiveGameEntity activeGame = serviceManager.getActiveGameService().findRelevantGame(guildId, member.getId());
+        ActiveGameEntity activeGame = serviceManager.getActiveGameService().findRelevantGame(guildId, member.getId(), gamemode);
 
         if (activeGame == null) {
             event.reply("❌ No game is currently running for you. Start one with `/start`").setEphemeral(true).queue();
@@ -60,6 +65,20 @@ public class GuessCommand {
             int nextRound = activeGame.getCurrentRound() + 1;
             boolean isGameOver = (nextRound > activeGame.getTotalRounds());
 
+            if (gamemode == GamemodeEnum.DAILY_CHALLENGE) {
+                serviceManager.getLeaderboardsService().recordCorrectGuesses(guildId, guildName,
+                        activeGame.isHighStakes() ?
+                                LeaderboardMemberStatusEnum.TOP_GUESSES_HIGH_STAKES :
+                                LeaderboardMemberStatusEnum.TOP_GUESSES, gamemode);
+                serviceManager.getActiveGameService().endGame(activeGame);
+                channel.sendMessageEmbeds( new EmbedBuilder()
+                        .setTitle("🎉 Daily Challenge — Correct!")
+                        .setDescription("**" + member.getEffectiveName() + "** guessed it right!")
+                        .addField(title, "was the "+type, false)
+                        .setColor(Color.GREEN).build()).queue();
+                return;
+            }
+
             EmbedBuilder embed = new EmbedBuilder()
                     .setTitle("🎉 Correct!")
                     .setDescription("**" + member.getEffectiveName() + "** guessed it right!")
@@ -72,7 +91,9 @@ public class GuessCommand {
 
                 // Update Leaderboard
                 serviceManager.getLeaderboardsService().recordCorrectGuesses(guildId, guildName,
-                        activeGame.isHighStakes() ? LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES : LeaderboardMemberStatus.TOP_GUESSES);
+                        activeGame.isHighStakes() ?
+                                LeaderboardMemberStatusEnum.TOP_GUESSES_HIGH_STAKES :
+                                LeaderboardMemberStatusEnum.TOP_GUESSES, gamemode);
 
                 // Pass the SPECIFIC game entity to end it
                 serviceManager.getActiveGameService().endGame(activeGame);
@@ -94,20 +115,57 @@ public class GuessCommand {
 
                 String finalDesc = description;
                 channel.sendMessageEmbeds(embed.build()).queue();
-                channel.sendMessageEmbeds(new EmbedBuilder()
-                        .setTitle("🎬 Next Round!")
-                        .setDescription(finalDesc)
-                        .setColor(Color.BLUE)
-                        .setImage(nextMovie.getGifUrl())
-                        .setFooter("Good luck! 🍿").build()).queue();
+
+                switch (gamemode) {
+                    case EMOJI: {
+                        channel.sendMessageEmbeds(new EmbedBuilder()
+                                .setTitle("🎬 Next Round!")
+                                .setDescription(finalDesc)
+                                .addField("What movie is represented with these emojis?",
+                                        nextMovie.getEmoji(), false)
+                                .setColor(Color.BLUE)
+                                .setFooter("Good luck! 🍿").build()).queue();
+                        break;
+                    }
+                    case QUOTE: {
+                        channel.sendMessageEmbeds(new EmbedBuilder()
+                                .setTitle("🎬 Next Round!")
+                                .setDescription(finalDesc)
+                                .addField("In what movie was this a famous quite in?",
+                                        nextMovie.getQuote(), false)
+                                .setColor(Color.BLUE)
+                                .setFooter("Good luck! 🍿").build()).queue();
+                        break;
+                    }
+                    case NORMAL: {
+                        // DEFAULT = NORMAL
+                        channel.sendMessageEmbeds(new EmbedBuilder()
+                                .setTitle("🎬 Next Round!")
+                                .setDescription(finalDesc)
+                                .setColor(Color.BLUE)
+                                .setImage(nextMovie.getGifUrl())
+                                .setFooter("Good luck! 🍿").build()).queue();
+                        break;
+                    }
+                }
             }
         } else {
+            if (gamemode == GamemodeEnum.DAILY_CHALLENGE) {
+                channel.sendMessageEmbeds(new EmbedBuilder()
+                        .setTitle("❌ Daily Challenge — Wrong!")
+                        .setDescription("**" + member.getEffectiveName() + "** guessed incorrectly!")
+                        .setColor(Color.RED).build()).queue();
+                return;
+            }
+
             // WRONG GUESS
             // Note: Logic here implies Game Over on first wrong guess (High Stakes style logic usually)
             // If you want standard mode to allow multiple guesses, check !highStakes before ending.
 
             serviceManager.getLeaderboardsService().recordCorrectGuesses(guildId, guildName,
-                    activeGame.isHighStakes() ? LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES : LeaderboardMemberStatus.TOP_GUESSES);
+                    activeGame.isHighStakes() ?
+                            LeaderboardMemberStatusEnum.TOP_GUESSES_HIGH_STAKES :
+                            LeaderboardMemberStatusEnum.TOP_GUESSES, gamemode);
 
             serviceManager.getActiveGameService().endGame(activeGame);
 

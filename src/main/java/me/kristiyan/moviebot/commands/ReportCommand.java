@@ -2,6 +2,7 @@ package me.kristiyan.moviebot.commands;
 
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -29,7 +30,7 @@ public class ReportCommand {
         String memberId = member.getId();
 
         // Find the relevant game to know which movie is being reported
-        ActiveGameEntity activeGame = serviceManager.getActiveGameService().findRelevantGame(guildId, memberId);
+        ActiveGameEntity activeGame = serviceManager.getActiveGameService().findRelevantGame(guildId, memberId, GamemodeEnum.NORMAL);
 
         if (activeGame == null) {
             event.reply("❌ You can only report a movie during an active game!").setEphemeral(true).queue();

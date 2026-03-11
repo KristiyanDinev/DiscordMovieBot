@@ -20,10 +20,10 @@ public class GuildEntity {
     private String guildName;
 
     @Column(name = "subscribed_at")
-    private LocalDate subscribedAt;
+    private LocalDate subscribedAt = null;
 
     @Column(name = "expires_at")
-    private LocalDate expiresAt;
+    private LocalDate expiresAt = null;
 
     // Getters & Setters
     public String getGuildId() { return guildId; }

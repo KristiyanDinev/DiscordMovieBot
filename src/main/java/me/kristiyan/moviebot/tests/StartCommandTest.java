@@ -1,6 +1,7 @@
 package me.kristiyan.moviebot.tests;
 
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 
 import java.util.Optional;
@@ -35,7 +36,7 @@ public class StartCommandTest {
         System.out.println("[1] Testing Public Game Start...");
 
         // Initial state: No public game
-        boolean hasPublic = services.getActiveGameService().hasActivePublicGame(guildId);
+        boolean hasPublic = services.getActiveGameService().hasActivePublicGame(guildId, GamemodeEnum.NORMAL);
         System.out.println("    - Public game exists initially: " + hasPublic);
 
         Optional<MovieEntity> movieEntityOptional = services.getMovieService().getRandomMovie("movie");
@@ -43,17 +44,19 @@ public class StartCommandTest {
             System.out.println("    - FAILED: Should have found an existing public game.");
             return;
         }
-        boolean started = services.getActiveGameService().startGame(guildId, movieEntityOptional.get(), 3, false, false, null);
+        boolean started = services.getActiveGameService().startGame(guildId, movieEntityOptional.get(),
+                3, false, false, null, GamemodeEnum.NORMAL);
 
         System.out.println("    - Game Start result: " + started);
-        System.out.println("    - Public game exists now: " + services.getActiveGameService().hasActivePublicGame(guildId));
+        System.out.println("    - Public game exists now: " + services.getActiveGameService()
+                .hasActivePublicGame(guildId, GamemodeEnum.NORMAL));
     }
 
     private void testPublicGameConcurrency() {
         System.out.println("[2] Testing Public Game Concurrency Block...");
 
         // Try to start a second public game in the same guild
-        boolean hasPublic = services.getActiveGameService().hasActivePublicGame(guildId);
+        boolean hasPublic = services.getActiveGameService().hasActivePublicGame(guildId, GamemodeEnum.NORMAL);
         if (hasPublic) {
             System.out.println("    - PASSED: Command logic would see existing public game and return early.");
         } else {
@@ -74,7 +77,8 @@ public class StartCommandTest {
             System.out.println("    - FAILED: Should have found an existing public game.");
             return;
         }
-        boolean started = services.getActiveGameService().startGame(guildId, movieEntityOptional.get(), 1, true, true, userId);
+        boolean started = services.getActiveGameService().startGame(guildId, movieEntityOptional.get(),
+                1, true, true, userId, GamemodeEnum.NORMAL);
 
         System.out.println("    - Locked Game Started: " + started);
         System.out.println("    - User has locked game now: " + services.getActiveGameService().hasActiveLockedGame(guildId, userId));
@@ -90,7 +94,8 @@ public class StartCommandTest {
             System.out.println("    - FAILED: Should have found an existing public game.");
             return;
         }
-        boolean user2Started = services.getActiveGameService().startGame(guildId, movieEntityOptional.get(), 1, false, true, user2);
+        boolean user2Started = services.getActiveGameService().startGame(guildId, movieEntityOptional.get(),
+                1, false, true, user2, GamemodeEnum.NORMAL);
 
         System.out.println("    - User 2 Locked Game Started: " + user2Started);
 
@@ -100,14 +105,16 @@ public class StartCommandTest {
 
     private void cleanupAll(String u2) {
         // Find and end public game
-        var publicGame = services.getActiveGameService().findRelevantGame("START_TEST_GUILD", "TEMP");
+        var publicGame = services.getActiveGameService().findRelevantGame("START_TEST_GUILD", "TEMP",
+                GamemodeEnum.NORMAL);
         if (publicGame != null && !publicGame.isLocked()) services.getActiveGameService().endGame(publicGame);
 
         // Find and end locked games
-        var g1 = services.getActiveGameService().findRelevantGame("START_TEST_GUILD", "USER_STARTER_1");
+        var g1 = services.getActiveGameService().findRelevantGame("START_TEST_GUILD",
+                "USER_STARTER_1", GamemodeEnum.NORMAL);
         if (g1 != null) services.getActiveGameService().endGame(g1);
 
-        var g2 = services.getActiveGameService().findRelevantGame("START_TEST_GUILD", u2);
+        var g2 = services.getActiveGameService().findRelevantGame("START_TEST_GUILD", u2, GamemodeEnum.NORMAL);
         if (g2 != null) services.getActiveGameService().endGame(g2);
     }
 }

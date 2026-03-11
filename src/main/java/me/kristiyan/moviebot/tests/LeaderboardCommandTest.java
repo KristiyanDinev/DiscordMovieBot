@@ -6,7 +6,8 @@ import me.kristiyan.moviebot.database.dto.MemberLeaderboardDTO;
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGuessEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
-import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
+import me.kristiyan.moviebot.enums.LeaderboardMemberStatusEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -49,7 +50,7 @@ public class LeaderboardCommandTest {
         createScore(guildId, "Server One", "User_Beta", 100);
 
         List<MemberLeaderboardDTO> board = services.getLeaderboardsService()
-                .getMemberLeaderboard(guildId, 10, LeaderboardMemberStatus.TOP_GUESSES);
+                .getMemberLeaderboard(guildId, 10, LeaderboardMemberStatusEnum.TOP_GUESSES);
 
         // Verification
         if (!board.isEmpty() && board.getFirst().getNickname().equals("User_Beta")) {
@@ -67,7 +68,7 @@ public class LeaderboardCommandTest {
         createScore("G2", "Noob Guild", "Leader2", 10);
 
         List<GuildLeaderboardDTO> board = services.getLeaderboardsService()
-                .getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
+                .getGuildLeaderboard(LeaderboardMemberStatusEnum.TOP_GUESSES, 10);
 
         // Verification
         boolean firstIsTop = board.stream()
@@ -81,7 +82,7 @@ public class LeaderboardCommandTest {
     private void testEmptyLeaderboard() {
         System.out.println("[3] Testing Empty State...");
         List<MemberLeaderboardDTO> emptyBoard = services.getLeaderboardsService()
-                .getMemberLeaderboard("G_EMPTY", 10, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
+                .getMemberLeaderboard("G_EMPTY", 10, LeaderboardMemberStatusEnum.TOP_GUESSES_HIGH_STAKES);
 
         System.out.println("    - Empty Check: " + (emptyBoard.isEmpty() ? "PASSED" : "FAILED"));
     }
@@ -97,7 +98,7 @@ public class LeaderboardCommandTest {
         createScore(guildId, guildName, "User_B", 20);
 
         List<GuildLeaderboardDTO> board = services.getLeaderboardsService()
-                .getGuildLeaderboard(LeaderboardMemberStatus.TOP_GUESSES, 10);
+                .getGuildLeaderboard(LeaderboardMemberStatusEnum.TOP_GUESSES, 10);
 
         // Filter for our specific guild in the global list
         List<GuildLeaderboardDTO> guildEntries = board.stream()
@@ -153,12 +154,11 @@ public class LeaderboardCommandTest {
         }
 
         // FIX 2: Trigger aggregation logic AFTER the setup session is fully closed
-        services.getLeaderboardsService().recordCorrectGuesses(gid, gName, LeaderboardMemberStatus.TOP_GUESSES);
+        services.getLeaderboardsService().recordCorrectGuesses(gid, gName, LeaderboardMemberStatusEnum.TOP_GUESSES,
+                GamemodeEnum.NORMAL);
 
         // FIX 3: Optional but helpful - verify the game existed
-        ActiveGameEntity game = services.getActiveGameService().getActiveGameEntity(gid);
-        if (game != null) {
-            services.getActiveGameService().endGame(game);
-        }
+        Optional<ActiveGameEntity> game = services.getActiveGameService().getActiveGameEntity(gid, GamemodeEnum.NORMAL);
+        game.ifPresent(activeGameEntity -> services.getActiveGameService().endGame(activeGameEntity));
     }
 }

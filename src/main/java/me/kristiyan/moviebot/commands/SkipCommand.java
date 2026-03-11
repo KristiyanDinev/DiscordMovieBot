@@ -2,10 +2,12 @@ package me.kristiyan.moviebot.commands;
 
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.awt.*;
 import java.util.Optional;
@@ -16,8 +18,14 @@ public class SkipCommand {
         Member member = event.getMember();
         if (member == null) return;
 
+        OptionMapping gamemodeOption = event.getOption("gamemode");
+        GamemodeEnum gamemode = gamemodeOption != null
+                ? GamemodeEnum.valueOf(gamemodeOption.getAsString())
+                : GamemodeEnum.NORMAL;
+
         // INTELLIGENT LOOKUP
-        ActiveGameEntity activeGameEntity = serviceManager.getActiveGameService().findRelevantGame(guildId, member.getId());
+        ActiveGameEntity activeGameEntity = serviceManager.getActiveGameService().findRelevantGame(guildId, member.getId(),
+                gamemode);
         if (activeGameEntity == null) {
             event.reply("⚠️ No active movie to skip!").setEphemeral(true).queue();
             return;
@@ -42,12 +50,40 @@ public class SkipCommand {
         // Update DB
         activeGameEntity.setMovie(movieEntity);
         serviceManager.getActiveGameService().updateActiveGame(activeGameEntity);
-
-        event.replyEmbeds(new EmbedBuilder()
-                .setTitle("⏭️ Movie Skipped!")
-                .setDescription("The previous " + type + " was: **" + prevMovieEntity.getTitle() + "**\n\nHere's a new one!")
-                .setImage(movieEntity.getGifUrl())
-                .setColor(Color.CYAN)
-                .setFooter("Use `/guess <title>` to make your guess! 🍿").build()).queue();
+        String description = "The previous " + type + " was: **" + prevMovieEntity.getTitle() + "**\n\nHere's a new one!";
+        String title = "⏭️ Movie Skipped!";
+        String footer = "Use `/guess <title>` to make your guess! 🍿";
+        switch (gamemode) {
+            case EMOJI: {
+                event.replyEmbeds(new EmbedBuilder()
+                        .setTitle(title)
+                        .setDescription(description)
+                        .addField("What movie is represented with these emojis?",
+                                movieEntity.getEmoji(), false)
+                        .setColor(Color.CYAN)
+                        .setFooter(footer).build()).queue();
+                break;
+            }
+            case QUOTE: {
+                event.replyEmbeds(new EmbedBuilder()
+                        .setTitle(title)
+                        .setDescription(description)
+                        .addField("In what movie was this a famous quite in?",
+                                movieEntity.getQuote(), false)
+                        .setColor(Color.CYAN)
+                        .setFooter(footer).build()).queue();
+                break;
+            }
+            default: {
+                // DEFAULT = NORMAL
+                event.replyEmbeds(new EmbedBuilder()
+                        .setTitle(title)
+                        .setDescription(description)
+                        .setColor(Color.CYAN)
+                        .setImage(movieEntity.getGifUrl())
+                        .setFooter(footer).build()).queue();
+                break;
+            }
+        }
     }
 }

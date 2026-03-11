@@ -2,6 +2,7 @@ package me.kristiyan.moviebot.database.entities.games;
 
 import jakarta.persistence.*;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
 
 import java.time.LocalDateTime;
 
@@ -40,6 +41,10 @@ public class ActiveGameEntity {
 
     @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt = LocalDateTime.now();
+
+    @Column(name = "gamemode", nullable = false)
+    @Enumerated(EnumType.ORDINAL)
+    private GamemodeEnum gamemode;
 
     // Getters & Setters
     public String getGuildId() {
@@ -104,5 +109,12 @@ public class ActiveGameEntity {
 
     public void setLockedMemberId(String lockedMemberId) {
         this.lockedMemberId = lockedMemberId;
+    }
+
+    public GamemodeEnum getGamemode() {
+        return gamemode;
+    }
+    public void setGamemode(GamemodeEnum gamemode) {
+        this.gamemode = gamemode;
     }
 }

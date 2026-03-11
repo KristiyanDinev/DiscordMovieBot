@@ -8,6 +8,7 @@ import me.kristiyan.moviebot.database.DatabaseManager;
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.games.ActiveGuessEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ActiveGameService {
     private static final Logger logger = LoggerFactory.getLogger(ActiveGameService.class);
@@ -26,7 +28,7 @@ public class ActiveGameService {
 
 
     public boolean startGame(String guildId, MovieEntity movieEntity, int totalRounds,
-                             boolean highStakes, boolean locked, String memberId) {
+                             boolean highStakes, boolean locked, String memberId, GamemodeEnum gamemode) {
         try (Session session = databaseManager.getSessionFactory().openSession()) {
             Transaction tx = session.beginTransaction();
             ActiveGameEntity activeGameEntity = new ActiveGameEntity();
@@ -36,6 +38,7 @@ public class ActiveGameService {
             activeGameEntity.setHighStake(highStakes);
             activeGameEntity.setLocked(locked);
             activeGameEntity.setLockedMemberId(locked ? memberId : null);
+            activeGameEntity.setGamemode(gamemode);
             session.persist(activeGameEntity);
             tx.commit();
             return true;
@@ -52,7 +55,7 @@ public class ActiveGameService {
      * Priority: 1. Their own Locked Game. 2. The Guild's Public Game.
      */
     @Nullable
-    public ActiveGameEntity findRelevantGame(String guildId, String memberId) {
+    public ActiveGameEntity findRelevantGame(String guildId, String memberId, GamemodeEnum gamemode) {
         try (Session session = databaseManager.getSessionFactory().openSession()) {
             CriteriaBuilder cb = session.getCriteriaBuilder();
             CriteriaQuery<ActiveGameEntity> cq = cb.createQuery(ActiveGameEntity.class);
@@ -61,9 +64,11 @@ public class ActiveGameService {
             // Logic: (guildId = G AND lockedMemberId = M) OR (guildId = G AND lockedMemberId IS NULL)
             cq.where(cb.or(cb.and(
                     cb.equal(root.get("guildId"), guildId),
+                    cb.equal(root.get("gamemode"), gamemode),
                     cb.equal(root.get("lockedMemberId"), memberId)
             ), cb.and(
                     cb.equal(root.get("guildId"), guildId),
+                    cb.equal(root.get("gamemode"), gamemode),
                     cb.isNull(root.get("lockedMemberId"))
             )));
 
@@ -81,18 +86,17 @@ public class ActiveGameService {
         }
     }
 
-    @Nullable
-    public ActiveGameEntity getActiveGameEntity(String guildId) {
+    public Optional<ActiveGameEntity> getActiveGameEntity(String guildId, GamemodeEnum gamemode) {
         try (Session session = databaseManager.getSessionFactory().openSession()) {
             CriteriaBuilder cb = session.getCriteriaBuilder();
             CriteriaQuery<ActiveGameEntity> cq = cb.createQuery(ActiveGameEntity.class);
             Root<ActiveGameEntity> root = cq.from(ActiveGameEntity.class);
-            cq.select(root).where(cb.equal(root.get("guildId"), guildId));
-            return session.createQuery(cq).setMaxResults(1).uniqueResult();
+            cq.select(root).where(cb.equal(root.get("guildId"), guildId), cb.equal(root.get("gamemode"), gamemode));
+            return Optional.ofNullable(session.createQuery(cq).setMaxResults(1).uniqueResult());
         }  catch (Exception ex) {
             logger.error(ex.fillInStackTrace().toString());
             System.err.println(ex.getMessage());
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -169,7 +173,7 @@ public class ActiveGameService {
         }
     }
 
-    public boolean hasActivePublicGame(String guildId) {
+    public boolean hasActivePublicGame(String guildId, GamemodeEnum gamemode) {
         try (Session session = databaseManager.getSessionFactory().openSession()) {
             CriteriaBuilder cb = session.getCriteriaBuilder();
             CriteriaQuery<Long> cq = cb.createQuery(Long.class);
@@ -178,6 +182,7 @@ public class ActiveGameService {
             cq.select(cb.count(root));
             cq.where(
                     cb.equal(root.get("guildId"), guildId),
+                    cb.equal(root.get("gamemode"), gamemode),
                     cb.isNull(root.get("lockedMemberId")) // Public = No locked member
             );
 

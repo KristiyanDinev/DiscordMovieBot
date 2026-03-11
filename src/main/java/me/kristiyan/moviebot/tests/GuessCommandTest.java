@@ -2,7 +2,8 @@ package me.kristiyan.moviebot.tests;
 
 import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
-import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
+import me.kristiyan.moviebot.enums.GamemodeEnum;
+import me.kristiyan.moviebot.enums.LeaderboardMemberStatusEnum;
 import me.kristiyan.moviebot.services.ServiceManager;
 
 import java.util.Optional;
@@ -43,9 +44,10 @@ public class GuessCommandTest {
             return;
         }
         MovieEntity movie= movieEntityOptional.get();
-        services.getActiveGameService().startGame(guildId, movie, 2, false, false, userId);
+        services.getActiveGameService().startGame(guildId, movie, 2, false, false, userId,
+                GamemodeEnum.NORMAL);
 
-        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
         if (game == null) {
             System.out.println("[ERROR] Game not found");
             return;
@@ -72,7 +74,7 @@ public class GuessCommandTest {
         services.getActiveGameService().updateActiveGame(game);
 
         // Verify
-        ActiveGameEntity updatedGame = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity updatedGame = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
         if (updatedGame == null) {
             System.out.println("[ERROR] Updates game not found");
             return;
@@ -93,15 +95,17 @@ public class GuessCommandTest {
             return;
         }
         MovieEntity movie= movieEntityOptional.get();
-        services.getActiveGameService().startGame(guildId, movie, 1, false, false, null);
-        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
+        services.getActiveGameService().startGame(guildId, movie, 1,
+                false, false, null, GamemodeEnum.NORMAL);
+        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
 
         // Simulate logic: record guesses, update leaderboard, end game
-        services.getLeaderboardsService().recordCorrectGuesses(guildId, guildName, LeaderboardMemberStatus.TOP_GUESSES);
+        services.getLeaderboardsService().recordCorrectGuesses(guildId, guildName,
+                LeaderboardMemberStatusEnum.TOP_GUESSES, GamemodeEnum.NORMAL);
         services.getActiveGameService().endGame(game);
 
         // Verify
-        ActiveGameEntity nullGame = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity nullGame = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
         System.out.println("    - Game ended and cleaned up: " + (nullGame == null));
     }
 
@@ -115,15 +119,17 @@ public class GuessCommandTest {
             return;
         }
         MovieEntity movie = movieOptional.get();
-        services.getActiveGameService().startGame(guildId, movie, 5, true, false, null);
-        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
+        services.getActiveGameService().startGame(guildId, movie, 5,
+                true, false, null, GamemodeEnum.NORMAL);
+        ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
 
         // Simulate Logic: Wrong guess in High Stakes triggers record and endGame
-        services.getLeaderboardsService().recordCorrectGuesses(guildId, guildName, LeaderboardMemberStatus.TOP_GUESSES_HIGH_STAKES);
+        services.getLeaderboardsService().recordCorrectGuesses(guildId, guildName,
+                LeaderboardMemberStatusEnum.TOP_GUESSES_HIGH_STAKES, GamemodeEnum.NORMAL);
         services.getActiveGameService().endGame(game);
 
         // Verify
-        ActiveGameEntity nullGame = services.getActiveGameService().findRelevantGame(guildId, userId);
+        ActiveGameEntity nullGame = services.getActiveGameService().findRelevantGame(guildId, userId, GamemodeEnum.NORMAL);
         System.out.println("    - High Stakes game terminated after failure: " + (nullGame == null));
     }
 }
