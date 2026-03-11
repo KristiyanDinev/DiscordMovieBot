@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.awt.*;
+import java.util.Optional;
 
 public class SkipCommand {
     public static void handleSkipCommand(SlashCommandInteractionEvent event, String guildId,
@@ -31,11 +32,12 @@ public class SkipCommand {
         String type = prevMovieEntity.getContentType();
 
         // Fetch new movie
-        MovieEntity movieEntity = serviceManager.getMovieService().getRandomMovie(type);
-        if (movieEntity == null) {
+        Optional<MovieEntity> movieEntityOptional = serviceManager.getMovieService().getRandomMovie(type);
+        if (movieEntityOptional.isEmpty()) {
             event.reply("❌ Error retrieving new movie.").setEphemeral(true).queue();
             return;
         }
+        MovieEntity movieEntity = movieEntityOptional.get();
 
         // Update DB
         activeGameEntity.setMovie(movieEntity);

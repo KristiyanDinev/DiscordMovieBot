@@ -9,14 +9,18 @@ public class ServiceManager {
     private final UpdateAnnouncementService updateAnnouncementService;
     private final MovieReportService movieReportService;
     private final BotUsageService botUsageService;
+    private final PremiumService premiumService;
+    private final ProfileService profileService;
 
     public ServiceManager(DatabaseManager databaseManager) {
+        premiumService = new PremiumService(databaseManager);
         activeGameService = new ActiveGameService(databaseManager);
         leaderboardsService = new LeaderboardsService(databaseManager, this);
         movieService = new MovieService(databaseManager);
         updateAnnouncementService = new UpdateAnnouncementService(databaseManager);
         movieReportService = new MovieReportService(databaseManager);
         botUsageService = new BotUsageService(databaseManager);
+        profileService = new ProfileService(databaseManager);
     }
 
     public ActiveGameService getActiveGameService() {
@@ -42,5 +46,12 @@ public class ServiceManager {
 
     public BotUsageService getBotUsageService() {
         return botUsageService;
+    }
+
+    public PremiumService getPremiumService() {
+        return premiumService;
+    }
+    public ProfileService getProfileService() {
+        return profileService;
     }
 }

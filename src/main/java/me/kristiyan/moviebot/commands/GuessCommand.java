@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.awt.*;
+import java.util.Optional;
 
 public class GuessCommand {
     public static void handleGuessCommand(SlashCommandInteractionEvent event, Guild guild, ServiceManager serviceManager) {
@@ -79,7 +80,12 @@ public class GuessCommand {
                 channel.sendMessageEmbeds(embed.build()).queue();
             } else {
                 activeGame.setCurrentRound(nextRound);
-                MovieEntity nextMovie = serviceManager.getMovieService().getRandomMovie(type);
+                Optional<MovieEntity> nextMovieOptional = serviceManager.getMovieService().getRandomMovie(type);
+                if (nextMovieOptional.isEmpty()) {
+                    channel.sendMessage("❌ Error! Can't get next movie. Please try again.").queue();
+                    return;
+                }
+                MovieEntity nextMovie = nextMovieOptional.get();
                 activeGame.setMovie(nextMovie);
                 serviceManager.getActiveGameService().updateActiveGame(activeGame);
 

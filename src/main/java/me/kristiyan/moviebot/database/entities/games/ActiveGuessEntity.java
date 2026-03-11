@@ -1,6 +1,7 @@
 package me.kristiyan.moviebot.database.entities.games;
 
 import jakarta.persistence.*;
+import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 
 import java.time.LocalDateTime;
 
@@ -22,12 +23,15 @@ public class ActiveGuessEntity {
     @Column(name = "guild_id", nullable = false)
     private String guildId;
 
-
     @Column(name = "member_id", nullable = false)
     private String memberId;
 
     @Column(name = "round_number", nullable = false)
     private int roundNumber;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "movie_id", nullable = false) // Links to MovieEntity.id
+    private MovieEntity movie;
 
     @Column(name = "guessed_at")
     private LocalDateTime guessedAt = LocalDateTime.now();
@@ -54,5 +58,8 @@ public class ActiveGuessEntity {
 
     public ActiveGameEntity getActiveGame() { return activeGame; }
     public void setActiveGame(ActiveGameEntity activeGame) { this.activeGame = activeGame; }
+
+    public MovieEntity getMovie() { return movie; }
+    public void setMovie(MovieEntity movie) { this.movie = movie; }
 
 }

@@ -3,6 +3,8 @@ package me.kristiyan.moviebot.tests;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 import me.kristiyan.moviebot.services.ServiceManager;
 
+import java.util.Optional;
+
 public class StartCommandTest {
     private final ServiceManager services;
     private final String guildId = "START_TEST_GUILD";
@@ -36,8 +38,12 @@ public class StartCommandTest {
         boolean hasPublic = services.getActiveGameService().hasActivePublicGame(guildId);
         System.out.println("    - Public game exists initially: " + hasPublic);
 
-        MovieEntity movie = services.getMovieService().getRandomMovie("movie");
-        boolean started = services.getActiveGameService().startGame(guildId, movie, 3, false, false, null);
+        Optional<MovieEntity> movieEntityOptional = services.getMovieService().getRandomMovie("movie");
+        if  (movieEntityOptional.isEmpty()) {
+            System.out.println("    - FAILED: Should have found an existing public game.");
+            return;
+        }
+        boolean started = services.getActiveGameService().startGame(guildId, movieEntityOptional.get(), 3, false, false, null);
 
         System.out.println("    - Game Start result: " + started);
         System.out.println("    - Public game exists now: " + services.getActiveGameService().hasActivePublicGame(guildId));
@@ -63,8 +69,12 @@ public class StartCommandTest {
         boolean hasLocked = services.getActiveGameService().hasActiveLockedGame(guildId, userId);
         System.out.println("    - User already has locked game: " + hasLocked);
 
-        MovieEntity movie = services.getMovieService().getRandomMovie("movie");
-        boolean started = services.getActiveGameService().startGame(guildId, movie, 1, true, true, userId);
+        Optional<MovieEntity> movieEntityOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieEntityOptional.isEmpty()) {
+            System.out.println("    - FAILED: Should have found an existing public game.");
+            return;
+        }
+        boolean started = services.getActiveGameService().startGame(guildId, movieEntityOptional.get(), 1, true, true, userId);
 
         System.out.println("    - Locked Game Started: " + started);
         System.out.println("    - User has locked game now: " + services.getActiveGameService().hasActiveLockedGame(guildId, userId));
@@ -75,8 +85,12 @@ public class StartCommandTest {
         String user2 = "USER_STARTER_2";
 
         // User 2 starts their own locked game in the same guild
-        MovieEntity movie = services.getMovieService().getRandomMovie("movie");
-        boolean user2Started = services.getActiveGameService().startGame(guildId, movie, 1, false, true, user2);
+        Optional<MovieEntity> movieEntityOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieEntityOptional.isEmpty()) {
+            System.out.println("    - FAILED: Should have found an existing public game.");
+            return;
+        }
+        boolean user2Started = services.getActiveGameService().startGame(guildId, movieEntityOptional.get(), 1, false, true, user2);
 
         System.out.println("    - User 2 Locked Game Started: " + user2Started);
 

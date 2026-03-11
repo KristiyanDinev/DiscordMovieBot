@@ -6,6 +6,8 @@ import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 import me.kristiyan.moviebot.services.ServiceManager;
 import net.dv8tion.jda.api.JDA;
 
+import java.util.Optional;
+
 public class MovieReportCommandTest {
     private final ServiceManager services;
     private final JDA jda;
@@ -51,7 +53,12 @@ public class MovieReportCommandTest {
         System.out.println("[2] Testing Successful Movie Report...");
 
         // Setup: Start a game so there is a movie to report
-        MovieEntity movie = services.getMovieService().getRandomMovie("movie");
+        Optional<MovieEntity> movieEntityOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieEntityOptional.isEmpty()) {
+            System.out.println("    - ERROR: Movie not found.");
+            return;
+        }
+        MovieEntity movie = movieEntityOptional.get();
         services.getActiveGameService().startGame(guildId, movie, 1, false, true, userId);
         ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
 

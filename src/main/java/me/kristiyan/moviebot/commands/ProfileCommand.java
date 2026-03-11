@@ -33,7 +33,6 @@ public class ProfileCommand {
 
         Optional<GuildMemberEntity> guildMemberEntityOptional =
                 leaderboardsService.getGuildMember(guildId, memberId);
-
         if (guildMemberEntityOptional.isEmpty()) {
             guildMemberEntityOptional =
                     leaderboardsService.createGuildMember(guildId, guildName, memberId, memberName, 0L, null, null);
@@ -81,7 +80,7 @@ public class ProfileCommand {
                         false)
 
                 // Fav genres
-                .addField("🎭  Favourite Genres",
+                .addField("🎭  Mostly Guessed Genres",
                         formatTags(entity.getFavouriteGenres()),
                         true)
 
@@ -132,7 +131,7 @@ public class ProfileCommand {
                         false)
 
                 // Fav genres
-                .addField("🎭  Favourite Genres",
+                .addField("🎭  Mostly Guessed Genres",
                         formatTags(entity.getFavouriteGenres()),
                         true)
 

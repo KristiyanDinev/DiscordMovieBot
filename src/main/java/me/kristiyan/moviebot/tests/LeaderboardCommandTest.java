@@ -12,6 +12,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.util.List;
+import java.util.Optional;
 
 public class LeaderboardCommandTest {
     private final ServiceManager services;
@@ -123,11 +124,15 @@ public class LeaderboardCommandTest {
         try (Session session = databaseManager.getSessionFactory().openSession()) {
             Transaction tx = session.beginTransaction();
 
-            MovieEntity dummyMovie = services.getMovieService().getRandomMovie("movie");
+            Optional<MovieEntity> dummyMovie = services.getMovieService().getRandomMovie("movie");
+            if  (dummyMovie.isEmpty()) {
+                System.out.println("    - ERROR: Movie not found.");
+                return;
+            }
 
             ActiveGameEntity game = new ActiveGameEntity();
             game.setGuildId(gid);
-            game.setMovie(dummyMovie);
+            game.setMovie(dummyMovie.get());
             game.setTotalRounds(score);
             game.setHighStake(false);
             session.persist(game);

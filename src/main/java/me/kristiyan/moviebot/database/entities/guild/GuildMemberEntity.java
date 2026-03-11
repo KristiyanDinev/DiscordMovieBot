@@ -30,11 +30,6 @@ public class GuildMemberEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity member;
 
-    @Column(name = "member_nickname", nullable = false)
-    private String memberNickname;
-
-    @Column(name = "xp", nullable = false)
-    private long xp;
 
     // Getters & Setters
     public Long getId() { return id; }
@@ -44,12 +39,6 @@ public class GuildMemberEntity {
 
     public MemberEntity getMember() { return member; }
     public void setMember(MemberEntity member) { this.member = member; }
-
-    public String getMemberNickname() { return memberNickname; }
-    public void setMemberNickname(String memberNickname) { this.memberNickname = memberNickname; }
-
-    public long getXp() { return xp; }
-    public void setXp(long xp) { this.xp = xp; }
 
     /**
      * Convenience — a member is premium in this guild context if either

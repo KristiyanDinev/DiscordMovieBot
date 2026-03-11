@@ -4,6 +4,8 @@ import me.kristiyan.moviebot.database.entities.games.ActiveGameEntity;
 import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 import me.kristiyan.moviebot.services.ServiceManager;
 
+import java.util.Optional;
+
 public class SkipCommandTest {
     private final ServiceManager services;
     private final String guildId = "SKIP_TEST_GUILD";
@@ -32,7 +34,12 @@ public class SkipCommandTest {
         System.out.println("[1] Testing Standard Skip...");
 
         // Setup: Start a standard 5-round game
-        MovieEntity movieA = services.getMovieService().getRandomMovie("movie");
+        Optional<MovieEntity> movieAOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieAOptional.isEmpty()) {
+            System.out.println("    - ERROR: Movie not found.");
+            return;
+        }
+        MovieEntity movieA = movieAOptional.get();
         services.getActiveGameService().startGame(guildId, movieA, 5, false, false, null);
 
         ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
@@ -43,7 +50,12 @@ public class SkipCommandTest {
         int firstMovieId = game.getMovie().getId();
 
         // Simulate Skip logic
-        MovieEntity movieB = services.getMovieService().getRandomMovie("movie");
+        Optional<MovieEntity> movieBOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieBOptional.isEmpty()) {
+            System.out.println("    - ERROR: Movie not found.");
+            return;
+        }
+        MovieEntity movieB = movieBOptional.get();
         game.setMovie(movieB);
         services.getActiveGameService().updateActiveGame(game);
 
@@ -64,7 +76,12 @@ public class SkipCommandTest {
         System.out.println("[2] Testing High Stakes Skip Restriction...");
 
         // Setup: Start a High Stakes game
-        MovieEntity movie = services.getMovieService().getRandomMovie("movie");
+        Optional<MovieEntity> movieEntityOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieEntityOptional.isEmpty()) {
+            System.out.println("    - ERROR: Movie not found.");
+            return;
+        }
+        MovieEntity movie = movieEntityOptional.get();
         services.getActiveGameService().startGame(guildId, movie, 3, true, false, null);
 
         ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
@@ -86,7 +103,12 @@ public class SkipCommandTest {
     private void testSkipPersistence() {
         System.out.println("[3] Testing Skip DB Persistence...");
 
-        MovieEntity movieOriginal = services.getMovieService().getRandomMovie("movie");
+        Optional<MovieEntity> movieOriginalOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieOriginalOptional.isEmpty()) {
+            System.out.println("    - ERROR: Movie not found.");
+            return;
+        }
+        MovieEntity movieOriginal = movieOriginalOptional.get();
         services.getActiveGameService().startGame(guildId, movieOriginal, 1, false, true, userId);
 
         ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
@@ -94,8 +116,12 @@ public class SkipCommandTest {
             System.out.println("[ERROR] Game not found");
             return;
         }
-        MovieEntity movieNew = services.getMovieService().getRandomMovie("movie");
-
+        Optional<MovieEntity> movieNewOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieNewOptional.isEmpty()) {
+            System.out.println("    - ERROR: Movie not found.");
+            return;
+        }
+        MovieEntity movieNew = movieNewOptional.get();
         game.setMovie(movieNew);
         services.getActiveGameService().updateActiveGame(game);
 

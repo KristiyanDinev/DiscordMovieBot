@@ -5,6 +5,8 @@ import me.kristiyan.moviebot.database.entities.movie.MovieEntity;
 import me.kristiyan.moviebot.enums.LeaderboardMemberStatus;
 import me.kristiyan.moviebot.services.ServiceManager;
 
+import java.util.Optional;
+
 public class GuessCommandTest {
     private final ServiceManager services;
     private final String guildId = "GUESS_TEST_GUILD";
@@ -35,7 +37,12 @@ public class GuessCommandTest {
         System.out.println("[1] Testing Round Progression (Correct Guess)...");
 
         // Setup: 2-round game
-        MovieEntity movie = services.getMovieService().getRandomMovie("movie");
+        Optional<MovieEntity> movieEntityOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieEntityOptional.isEmpty()) {
+            System.out.println("[ERROR] Movie not found");
+            return;
+        }
+        MovieEntity movie= movieEntityOptional.get();
         services.getActiveGameService().startGame(guildId, movie, 2, false, false, userId);
 
         ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
@@ -55,7 +62,12 @@ public class GuessCommandTest {
         // Progress state
         int nextRound = game.getCurrentRound() + 1;
         game.setCurrentRound(nextRound);
-        MovieEntity nextMovie = services.getMovieService().getRandomMovie("movie");
+        Optional<MovieEntity> nextMovieOptional = services.getMovieService().getRandomMovie("movie");
+        if (nextMovieOptional.isEmpty()) {
+            System.out.println("[ERROR] Movie not found");
+            return;
+        }
+        MovieEntity  nextMovie = nextMovieOptional.get();
         game.setMovie(nextMovie);
         services.getActiveGameService().updateActiveGame(game);
 
@@ -75,7 +87,12 @@ public class GuessCommandTest {
         System.out.println("[2] Testing Game Completion (Last Round Correct)...");
 
         // Setup: 1-round game
-        MovieEntity movie = services.getMovieService().getRandomMovie("movie");
+        Optional<MovieEntity> movieEntityOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieEntityOptional.isEmpty()) {
+            System.out.println("[ERROR] Movie not found");
+            return;
+        }
+        MovieEntity movie= movieEntityOptional.get();
         services.getActiveGameService().startGame(guildId, movie, 1, false, false, null);
         ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
 
@@ -92,7 +109,12 @@ public class GuessCommandTest {
         System.out.println("[3] Testing High Stakes Failure (Wrong Guess)...");
 
         // Setup: High Stakes Game
-        MovieEntity movie = services.getMovieService().getRandomMovie("movie");
+        Optional<MovieEntity> movieOptional = services.getMovieService().getRandomMovie("movie");
+        if (movieOptional.isEmpty()) {
+            System.out.println("[ERROR] Movie not found");
+            return;
+        }
+        MovieEntity movie = movieOptional.get();
         services.getActiveGameService().startGame(guildId, movie, 5, true, false, null);
         ActiveGameEntity game = services.getActiveGameService().findRelevantGame(guildId, userId);
 

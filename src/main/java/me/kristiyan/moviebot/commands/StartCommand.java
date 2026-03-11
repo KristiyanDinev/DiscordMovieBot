@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.awt.*;
+import java.util.Optional;
 
 public class StartCommand {
 
@@ -42,11 +43,12 @@ public class StartCommand {
         int totalRounds = (roundsMapping != null && roundsMapping.getAsInt() != 1) ? roundsMapping.getAsInt() : 1;
         boolean highStakes = highStakesMapping != null && highStakesMapping.getAsBoolean();
 
-        MovieEntity movieEntity = serviceManager.getMovieService().getRandomMovie(type);
-        if (movieEntity == null) {
+        Optional<MovieEntity> movieEntityOptional = serviceManager.getMovieService().getRandomMovie(type);
+        if (movieEntityOptional.isEmpty()) {
             event.reply("❌ Could not retrieve movie information.").setEphemeral(true).queue();
             return;
         }
+        MovieEntity movieEntity = movieEntityOptional.get();
 
         if (!serviceManager.getActiveGameService().startGame(guildId, movieEntity, totalRounds, highStakes, locked, member.getId())) {
             event.reply("❌ Could not start the game.").setEphemeral(true).queue();

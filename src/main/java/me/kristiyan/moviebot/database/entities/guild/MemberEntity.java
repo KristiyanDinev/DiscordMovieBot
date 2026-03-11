@@ -20,10 +20,13 @@ public class MemberEntity {
     private String memberName;
 
     @Column(name = "subscribed_at")
-    private LocalDate subscribedAt;
+    private LocalDate subscribedAt = null;
 
     @Column(name = "expires_at")
-    private LocalDate expiresAt;
+    private LocalDate expiresAt = null;
+
+    @Column(name = "xp", nullable = false)
+    private long xp = 0L;
 
     // Getters & Setters
     public String getMemberId() { return memberId; }
@@ -37,6 +40,9 @@ public class MemberEntity {
 
     public LocalDate getExpiresAt() { return expiresAt; }
     public void setExpiresAt(LocalDate expiresAt) { this.expiresAt = expiresAt; }
+
+    public long getXp() { return xp; }
+    public void setXp(long xp) { this.xp = xp; }
 
     /** Safe null-check: never subscribed = not premium. */
     public boolean isPremium() {
