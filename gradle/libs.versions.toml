@@ -1,5 +1,5 @@
 [versions]
-jda = "6.3.1"
+jda = "6.4.0"
 slf4j = "2.0.17"
 postgres = "42.7.10"
 hikaricp = "7.0.2"
