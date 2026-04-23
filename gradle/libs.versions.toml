@@ -4,7 +4,7 @@ slf4j = "2.0.17"
 postgres = "42.7.10"
 hikaricp = "7.0.2"
 jpa = "4.0.0-M1"
-hibernate = "7.2.6.Final"
+hibernate = "7.3.2.Final"
 logback = "1.5.32"
 
 [libraries]
